@@ -53,9 +53,31 @@ async function callLLM(env: Env, messages: { role: string; content: string }[]):
   return reply.trim();
 }
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Max-Age': '86400'
+};
+
+function json(data: any, init?: { status?: number }) {
+  return new Response(JSON.stringify(data), {
+    status: init?.status || 200,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      ...CORS_HEADERS
+    }
+  });
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+
+    // 處理跨來源預檢請求 (CORS Preflight)
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: CORS_HEADERS });
+    }
 
     // API 路由：取得所有章節
     if (url.pathname === '/api/chapters') {
@@ -63,9 +85,9 @@ export default {
         const { results } = await env.autism_comm_disorders_db
           .prepare('SELECT id, slug, title, subtitle, description, sort_order FROM chapters ORDER BY sort_order ASC')
           .all();
-        return Response.json({ success: true, data: results });
+        return json({ success: true, data: results });
       } catch (err: any) {
-        return Response.json({ success: false, error: err.message }, { status: 500 });
+        return json({ success: false, error: err.message }, { status: 500 });
       }
     }
 
@@ -81,7 +103,7 @@ export default {
           .first();
 
         if (!chapter) {
-          return Response.json({ success: false, error: 'Chapter not found' }, { status: 404 });
+          return json({ success: false, error: 'Chapter not found' }, { status: 404 });
         }
 
         const { results: questions } = await env.autism_comm_disorders_db
@@ -109,13 +131,13 @@ export default {
           }))
         }));
 
-        return Response.json({
+        return json({
           success: true,
           chapter,
           questions: questionsWithOpts
         });
       } catch (err: any) {
-        return Response.json({ success: false, error: err.message }, { status: 500 });
+        return json({ success: false, error: err.message }, { status: 500 });
       }
     }
 
@@ -135,7 +157,7 @@ export default {
         } = body;
 
         if (!student_id || !student_name || typeof student_id !== 'string' || typeof student_name !== 'string') {
-          return Response.json({ success: false, error: '請輸入正確的學號與姓名' }, { status: 400 });
+          return json({ success: false, error: '請輸入正確的學號與姓名' }, { status: 400 });
         }
 
         const wrongQuestionsJson = typeof wrong_questions === 'string' 
@@ -160,13 +182,13 @@ export default {
           )
           .run();
 
-        return Response.json({
+        return json({
           success: true,
           message: '作答紀錄已成功儲存至 Cloudflare D1 資料庫',
           submission_id: result.meta?.last_row_id || null
         });
       } catch (err: any) {
-        return Response.json({ success: false, error: err.message }, { status: 500 });
+        return json({ success: false, error: err.message }, { status: 500 });
       }
     }
 
@@ -200,9 +222,9 @@ export default {
           };
         });
 
-        return Response.json({ success: true, data: parsedResults });
+        return json({ success: true, data: parsedResults });
       } catch (err: any) {
-        return Response.json({ success: false, error: err.message }, { status: 500 });
+        return json({ success: false, error: err.message }, { status: 500 });
       }
     }
 
@@ -284,7 +306,7 @@ export default {
             .run();
         }
 
-        return Response.json({
+        return json({
           success: true,
           session_id: sessionId,
           message: aiOpeningMessage,
@@ -292,7 +314,7 @@ export default {
         });
       } catch (err: any) {
         console.error('AI Tutor Start Error:', err);
-        return Response.json({ success: false, error: err.message }, { status: 500 });
+        return json({ success: false, error: err.message }, { status: 500 });
       }
     }
 
@@ -303,7 +325,7 @@ export default {
         const { session_id, student_message } = body;
 
         if (!session_id || !student_message || !student_message.trim()) {
-          return Response.json({ success: false, error: '缺少 session_id 或訊息內容' }, { status: 400 });
+          return json({ success: false, error: '缺少 session_id 或訊息內容' }, { status: 400 });
         }
 
         // 查詢會話資訊
@@ -313,7 +335,7 @@ export default {
           .first();
 
         if (!session) {
-          return Response.json({ success: false, error: '找不到該對話會話' }, { status: 404 });
+          return json({ success: false, error: '找不到該對話會話' }, { status: 404 });
         }
 
         // 寫入學生新發言
@@ -373,7 +395,7 @@ export default {
           .bind(isClarified ? 1 : 0, session_id)
           .run();
 
-        return Response.json({
+        return json({
           success: true,
           reply: cleanReply,
           reply_message: cleanReply,
@@ -382,7 +404,7 @@ export default {
         });
       } catch (err: any) {
         console.error('AI Tutor Chat Error:', err);
-        return Response.json({ success: false, error: err.message }, { status: 500 });
+        return json({ success: false, error: err.message }, { status: 500 });
       }
     }
 
@@ -391,7 +413,7 @@ export default {
       try {
         const sessionId = url.searchParams.get('session_id');
         if (!sessionId) {
-          return Response.json({ success: false, error: '缺少 session_id' }, { status: 400 });
+          return json({ success: false, error: '缺少 session_id' }, { status: 400 });
         }
 
         const { results } = await env.autism_comm_disorders_db
@@ -399,9 +421,9 @@ export default {
           .bind(sessionId)
           .all();
 
-        return Response.json({ success: true, data: results });
+        return json({ success: true, data: results });
       } catch (err: any) {
-        return Response.json({ success: false, error: err.message }, { status: 500 });
+        return json({ success: false, error: err.message }, { status: 500 });
       }
     }
 
@@ -422,9 +444,9 @@ export default {
         const stmt = env.autism_comm_disorders_db.prepare(query);
         const { results } = params.length > 0 ? await stmt.bind(...params).all() : await stmt.all();
 
-        return Response.json({ success: true, data: results });
+        return json({ success: true, data: results });
       } catch (err: any) {
-        return Response.json({ success: false, error: err.message }, { status: 500 });
+        return json({ success: false, error: err.message }, { status: 500 });
       }
     }
 
@@ -453,9 +475,9 @@ export default {
           `)
           .all();
 
-        return Response.json({ success: true, data: results });
+        return json({ success: true, data: results });
       } catch (err: any) {
-        return Response.json({ success: false, error: err.message }, { status: 500 });
+        return json({ success: false, error: err.message }, { status: 500 });
       }
     }
 
