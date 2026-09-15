@@ -3,6 +3,9 @@
   "name": "ant-online-course-platform",
   "main": "src/index.ts",
   "compatibility_date": "2026-09-15",
+  "vars": {
+    "AI_MODEL": "qwen/qwen3.8-27b"
+  },
   "d1_databases": [
     {
       "binding": "autism_comm_disorders_db",
