@@ -228,6 +228,33 @@ export default {
       }
     }
 
+    // API 路由：清除學生測驗成績與 AI 歷程紀錄 (老師管理專用)
+    if (url.pathname === '/api/admin/clear-data' && request.method === 'POST') {
+      try {
+        const body = await request.json() as any;
+        const { target = 'submissions', confirmation } = body;
+
+        if (confirmation !== 'CLEAR') {
+          return json({ success: false, error: '安全確認碼不符，操作已取消' }, { status: 400 });
+        }
+
+        if (target === 'submissions' || target === 'all') {
+          await env.autism_comm_disorders_db.prepare('DELETE FROM student_submissions').run();
+        }
+        if (target === 'tutor' || target === 'all') {
+          await env.autism_comm_disorders_db.prepare('DELETE FROM ai_tutor_messages').run();
+          await env.autism_comm_disorders_db.prepare('DELETE FROM ai_tutor_sessions').run();
+        }
+
+        return json({
+          success: true,
+          message: `Cloudflare D1 資料庫【${target === 'all' ? '全部作答與 AI 歷程' : (target === 'tutor' ? 'AI 蘇格拉底歷程' : '學生作答成績')}】已全數清除完畢！`
+        });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
     // ==========================================
     // AI 蘇格拉底家教 API 路由
     // ==========================================
