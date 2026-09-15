@@ -63,6 +63,26 @@
   4. **AI家教破障總覽**（深紫色系）：家教階段 Session ID、學生、題目、初選錯誤、正解、對話輪數與突破狀態。
   5. **AI逐字對話歷程**（靛青色系）：**完整保留每一回合對話逐字稿**（學生發言以淡藍標記、AI發言以淡紫標記、觀念突破關鍵點以淡綠標記），讓教師完全掌握學生思維卡點與概念演進。
 
+### 7. 資料庫資料清除規範與安全防護 (Clear Data)
+- **原則**：只清空資料列（`DELETE FROM`），**嚴格禁止刪除資料表結構（`DROP TABLE`）**。
+- **清除途徑**：
+  1. **線上網頁 UI**：歷史紀錄儀表板 ➔ 點擊「🧹 清除資料庫紀錄」按鈕，具備雙重防呆驗證。
+  2. **PowerShell 腳本**：`powershell -ExecutionPolicy Bypass -File d:\2026ant線上教學網站\scripts\clear_d1_data.ps1`
+  3. **後端 API**：`POST /api/admin/clear-data`（帶 `confirmation: "CLEAR"`）。
+- **保留內容**：考題（`questions`、`question_options`）與章節資料永久保留，僅清除學生作答卷與對話紀錄。
+
+### 8. 教學平台製作聲明與版權規範
+- **製作者標註**：所有線上頁面頁腳、全卷檢視彈窗與對外說明文件，均需清楚標明：
+  > **本教學平台由 亞洲大學 聽力暨語言治療學系 語言組 林樺鋒老師 製作**
+
+---
+
+## 🌐 線上發布與遠端儲存庫資訊
+
+- **Cloudflare 全球主站（首選）**：[`https://autism-learning-platform.2026ant.workers.dev`](https://autism-learning-platform.2026ant.workers.dev)
+- **GitHub Pages 靜態鏡像站**：[`https://hunter163703-debug.github.io/autism-learning-platform/`](https://hunter163703-debug.github.io/autism-learning-platform/)
+- **GitHub 專案原始碼儲存庫**：[`https://github.com/hunter163703-debug/autism-learning-platform`](https://github.com/hunter163703-debug/autism-learning-platform)
+
 ---
 
 ## 📋 已登記課程資料庫清單
@@ -80,6 +100,9 @@
 # 設定或更新 Groq API Key（安全無外洩引導）
 powershell -ExecutionPolicy Bypass -File d:\2026ant線上教學網站\scripts\setup_groq_key.ps1
 
+# 清除學生作答成績或 AI 對話歷程（新學期/班級重設）
+powershell -ExecutionPolicy Bypass -File d:\2026ant線上教學網站\scripts\clear_d1_data.ps1
+
 # 查詢自閉症溝通障礙資料庫資訊
 & "C:\Users\Administrator\AppData\Roaming\npm\wrangler.cmd" d1 info autism-comm-disorders-db
 
@@ -91,4 +114,7 @@ powershell -ExecutionPolicy Bypass -File d:\2026ant線上教學網站\scripts\se
 
 # 匯出 5 大工作表完整 Excel 學習歷程與教學診斷分析報表
 python d:\2026ant線上教學網站\scripts\export_excel.py
+
+# 部署更新至 Cloudflare Workers
+& "C:\Users\Administrator\AppData\Roaming\npm\wrangler.cmd" deploy
 ```
