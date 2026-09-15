@@ -1,0 +1,23 @@
+# Environment variables and secrets (NEVER commit these!)
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+
+# Dependencies
+node_modules/
+
+# Cloudflare Wrangler local state & caches
+.wrangler/
+
+# Build artifacts
+dist/
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Student score exports & spreadsheets (privacy & security)
+*.xlsx
+*.csv
