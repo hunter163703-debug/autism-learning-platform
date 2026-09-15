@@ -1,0 +1,2326 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>自閉症與溝通障礙 - 多元教學互動平台</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+            },
+            autism: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap');
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- 頂部導航列 -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <button id="sidebarToggle" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden">
+          <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-autism-500 to-indigo-600 flex items-center justify-center text-white shadow-md">
+          <i class="fa-solid fa-puzzle-piece text-lg"></i>
+        </div>
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-autism-600 bg-autism-50 px-2 py-0.5 rounded">專業互動教學平台</span>
+          <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">自閉症與溝通障礙教學平台</h1>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <!-- 學生身分按鈕 -->
+        <button id="studentProfileBtn" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 transition shadow-sm">
+          <i class="fa-solid fa-user-graduate"></i>
+          <span id="studentProfileText">登記學號姓名</span>
+        </button>
+
+        <!-- 即時作答計時器 -->
+        <div class="flex items-center bg-amber-50 px-2.5 py-1.5 rounded-lg border border-amber-200 text-xs font-medium space-x-1.5 text-amber-800 shadow-sm">
+          <i class="fa-regular fa-clock text-amber-600"></i>
+          <span class="text-slate-500 hidden sm:inline">作答時間：</span>
+          <span id="timerDisplay" class="font-mono font-bold text-amber-900">00:00</span>
+        </div>
+
+        <!-- 答題進度與分數徽章 -->
+        <div class="hidden md:flex items-center bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium space-x-3">
+          <div><span class="text-slate-500">已作答：</span><span id="answeredCountBadge" class="font-bold text-autism-600">0</span>/10</div>
+          <div class="h-3 w-px bg-slate-300"></div>
+          <div><span class="text-slate-500">正確率：</span><span id="accuracyBadge" class="font-bold text-emerald-600">0%</span></div>
+        </div>
+
+        <!-- 查看歷史紀錄按鈕 -->
+        <button id="historyRecordsBtn" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition">
+          <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+          <span class="hidden sm:inline">歷史紀錄</span>
+        </button>
+
+        <button id="resetQuizBtn" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition">
+          <i class="fa-solid fa-rotate-right text-xs"></i>
+          <span class="hidden sm:inline">重新測驗</span>
+        </button>
+
+        <!-- D1 資料庫綁定指示 -->
+        <a href="#d1InfoModal" id="d1Badge" class="inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-sky-700 bg-sky-50 border border-sky-200 hover:bg-sky-100 transition">
+          <i class="fa-solid fa-database text-xs text-sky-600"></i>
+          <span class="hidden lg:inline">Cloudflare D1</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主內容佈局 -->
+  <div class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex gap-6">
+
+    <!-- 左側章節選單 (Sidebar) -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 transform -translate-x-full lg:translate-x-0 lg:static lg:z-auto transition-transform duration-300 ease-in-out flex flex-col shadow-xl lg:shadow-none rounded-2xl lg:border lg:h-[calc(100vh-6.5rem)] lg:sticky lg:top-20">
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+        <h2 class="font-bold text-slate-800 flex items-center space-x-2 text-sm">
+          <i class="fa-solid fa-layer-group text-autism-600"></i>
+          <span>課程單元與活動</span>
+        </h2>
+        <button id="closeSidebar" class="p-1.5 text-slate-400 hover:text-slate-600 lg:hidden">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+        <!-- 第一節：已解鎖互動測驗 -->
+        <div class="p-3 rounded-xl bg-autism-50 border border-autism-200 text-autism-900 cursor-pointer shadow-sm relative group">
+          <div class="flex items-start justify-between">
+            <span class="inline-block text-[11px] font-bold uppercase tracking-wider text-autism-700 bg-autism-100 px-2 py-0.5 rounded mb-1">
+              當前單元 · 核心觀念測驗
+            </span>
+            <i class="fa-solid fa-circle-check text-autism-600 text-sm mt-0.5"></i>
+          </div>
+          <h3 class="font-bold text-sm text-slate-900 group-hover:text-autism-700 transition">第一節 自閉症兒童的診斷以及臨床表現</h3>
+          <p class="text-xs text-slate-600 mt-1 line-clamp-2">精選 10 題核心觀念檢測，含 DSM-IV 與 DSM-5 診斷要點與詳細選項逐項解析。</p>
+        </div>
+
+        <!-- 未來章節 預留 -->
+        <div class="p-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/70 text-slate-400 cursor-not-allowed">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded">章節單元</span>
+            <i class="fa-solid fa-lock text-xs text-slate-300"></i>
+          </div>
+          <h4 class="font-semibold text-xs text-slate-500">第二節 自閉症兒童的語言與溝通特徵</h4>
+          <p class="text-[11px] text-slate-400 mt-0.5">語用缺損、共同注意力（Joint Attention）與心智理論（ToM）互動教學。</p>
+        </div>
+
+        <div class="p-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/70 text-slate-400 cursor-not-allowed">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded">章節單元</span>
+            <i class="fa-solid fa-lock text-xs text-slate-300"></i>
+          </div>
+          <h4 class="font-semibold text-xs text-slate-500">第三節 自閉症介入模式與溝通輔助</h4>
+          <p class="text-[11px] text-slate-400 mt-0.5">PECS 圖片兌換溝通系統、TEACCH 結構化教學與自然情境教學。</p>
+        </div>
+
+        <div class="p-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/70 text-slate-400 cursor-not-allowed">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded">章節單元</span>
+            <i class="fa-solid fa-lock text-xs text-slate-300"></i>
+          </div>
+          <h4 class="font-semibold text-xs text-slate-500">第四節 社會情緒互動與行為問題處理</h4>
+          <p class="text-[11px] text-slate-400 mt-0.5">社交故事（Social Stories）、情緒調節與固著行為支持學習單。</p>
+        </div>
+      </div>
+
+      <!-- 底部 D1 資料庫綁定提示 -->
+      <div class="p-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 rounded-b-2xl">
+        <div class="flex items-center space-x-2 text-slate-700 font-medium">
+          <i class="fa-solid fa-server text-autism-600"></i>
+          <span>D1 課程資料庫綁定</span>
+        </div>
+        <p class="mt-1 text-[11px] text-slate-500 truncate font-mono">autism-comm-disorders-db</p>
+        <p class="text-[10px] text-emerald-600 mt-0.5 font-medium flex items-center">
+          <i class="fa-solid fa-circle text-[6px] mr-1 text-emerald-500"></i>即時儲存作答時間、成績與錯題
+        </p>
+      </div>
+    </aside>
+
+    <!-- 右側互動測驗主體區 -->
+    <main class="flex-1 min-w-0 flex flex-col space-y-6">
+
+      <!-- 學生身分登記橫幅 (未填寫時醒目提示，填寫後顯示當前身分) -->
+      <div id="studentBanner" class="p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between bg-indigo-50/70 border-indigo-200 text-indigo-950">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+            <i class="fa-solid fa-id-card"></i>
+          </div>
+          <div>
+            <div id="studentBannerTitle" class="text-sm font-bold">尚未登記學生身分</div>
+            <p id="studentBannerDesc" class="text-xs text-indigo-700 mt-0.5">請先登記「學號」與「姓名」，系統將為您自動記錄作答時間、測驗成績與錯題至 Cloudflare D1 資料庫。</p>
+          </div>
+        </div>
+        <button id="openStudentModalFromBanner" class="px-3.5 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 text-xs font-semibold rounded-xl shadow-sm transition flex-shrink-0">
+          立即登記
+        </button>
+      </div>
+
+      <!-- 單元頂部資訊卡 -->
+      <div class="bg-gradient-to-r from-autism-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+        <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+        <div class="relative z-10">
+          <div class="flex items-center space-x-2 text-autism-100 text-xs font-semibold mb-2">
+            <span class="bg-white/20 px-2.5 py-0.5 rounded-full backdrop-blur-sm">第一節 核心概念測驗</span>
+            <span>·</span>
+            <span>共 10 題核心檢測題</span>
+            <span>·</span>
+            <span class="bg-emerald-400/20 text-emerald-200 px-2 py-0.5 rounded-full">D1 雲端即時同步</span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black tracking-tight">自閉症兒童的診斷以及臨床表現</h2>
+          <p class="text-autism-100 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
+            每做完一題立即顯示答案與每個選項的詳細解析，作答時間與成績將自動儲存於 D1 資料庫。
+          </p>
+
+          <!-- 題號快捷導覽條 (1~10) -->
+          <div class="mt-5 pt-4 border-t border-white/20 flex items-center justify-between flex-wrap gap-2">
+            <span class="text-xs text-white/80 font-medium">題目快速導覽：</span>
+            <div id="questionNumberGrid" class="flex flex-wrap gap-1.5">
+              <!-- 題號按鈕由 JS 生成 -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 測驗題目卡片容器 -->
+      <div id="quizCard" class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm transition-all duration-300">
+        
+        <!-- 題目題號與分類標籤 -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+          <div class="flex items-center space-x-2">
+            <span id="currentQuestionBadge" class="bg-autism-600 text-white font-black text-sm px-3 py-1 rounded-lg shadow-sm">
+              第 1 題 / 共 10 題
+            </span>
+            <span id="examSourceTag" class="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">
+              【診斷準則】DSM-IV 亞斯伯格症鑑別
+            </span>
+          </div>
+          <div id="statusIndicator" class="text-xs font-bold px-2.5 py-1 rounded-md hidden">
+            <!-- 已作答狀態指示 -->
+          </div>
+        </div>
+
+        <!-- 題幹文字 -->
+        <div class="py-6">
+          <h3 id="questionText" class="text-base sm:text-lg font-bold text-slate-900 leading-relaxed">
+            <!-- 題幹內容 -->
+          </h3>
+        </div>
+
+        <!-- 選項列表 (A, B, C, D) -->
+        <div id="optionsContainer" class="space-y-3">
+          <!-- 選項按鈕由 JS 生成 -->
+        </div>
+
+        <!-- 即時解析面板（作答後自動展開） -->
+        <div id="explanationPanel" class="mt-6 pt-6 border-t border-slate-100 hidden">
+          <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 space-y-4">
+            
+            <!-- 正確答案與摘要重點 -->
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div class="flex items-center space-x-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">標準解答</span>
+                <span id="correctAnswerBadge" class="text-base font-black px-3 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  B
+                </span>
+              </div>
+              <div id="resultStatusText" class="text-sm font-bold"></div>
+            </div>
+
+            <!-- 本題核心觀念總結 -->
+            <div class="p-3.5 bg-white rounded-lg border border-slate-200 text-xs sm:text-sm text-slate-700 leading-relaxed">
+              <span class="font-bold text-slate-900 block mb-1">
+                <i class="fa-solid fa-lightbulb text-amber-500 mr-1.5"></i>核心概念歸納：
+              </span>
+              <p id="summaryExplanationText" class="text-slate-600"></p>
+            </div>
+
+            <!-- 四個選項逐項解析 -->
+            <div class="space-y-2">
+              <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                <i class="fa-solid fa-list-check text-autism-600 mr-1.5"></i>選項深度逐項剖析：
+              </span>
+              <div id="optionsExplanationList" class="space-y-2">
+                <!-- 由 JS 填入 A, B, C, D 逐項說明 -->
+              </div>
+            </div>
+
+            <!-- AI 蘇格拉底家教破障微對話入口按鈕 -->
+            <div class="pt-2">
+              <button id="openAiTutorBtn" type="button" class="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-700 hover:from-violet-700 hover:to-indigo-700 text-white rounded-xl shadow-md hover:shadow-lg transition transform active:scale-[0.99] group">
+                <div class="flex items-center space-x-3 text-left">
+                  <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl shadow-inner group-hover:scale-110 transition">
+                    🤖
+                  </div>
+                  <div>
+                    <div class="text-xs sm:text-sm font-bold flex items-center space-x-1.5">
+                      <span>召喚 AI 蘇格拉底家教 · 深度釐清本題盲點</span>
+                      <span class="bg-amber-400 text-amber-950 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">破障微對話</span>
+                    </div>
+                    <p class="text-[11px] text-violet-100 mt-0.5">以引導詰問找出觀念卡點，不直接給答案，陪您一步步推導正解</p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-1 text-xs font-semibold text-white/90 group-hover:text-white">
+                  <span class="hidden sm:inline">開始引導</span>
+                  <i class="fa-solid fa-arrow-right text-xs opacity-80 group-hover:opacity-100 group-hover:translate-x-1 transition ml-1"></i>
+                </div>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 導航控制列（上一題 / 下一題） -->
+        <div class="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between">
+          <button id="prevBtn" class="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition disabled:opacity-40 disabled:cursor-not-allowed">
+            <i class="fa-solid fa-chevron-left text-xs"></i>
+            <span>上一題</span>
+          </button>
+
+          <div class="text-xs text-slate-400 font-medium">
+            提示：點擊選項即可立即揭曉詳解與記錄
+          </div>
+
+          <button id="nextBtn" class="inline-flex items-center space-x-2 px-5 py-2 rounded-xl text-sm font-semibold text-white bg-autism-600 hover:bg-autism-700 shadow-sm transition disabled:opacity-40 disabled:cursor-not-allowed">
+            <span>下一題</span>
+            <i class="fa-solid fa-chevron-right text-xs"></i>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- 測驗總結結算卡片（當10題全部完成時顯示） -->
+      <div id="completionSummaryCard" class="hidden bg-white border-2 border-emerald-500/40 rounded-2xl p-6 sm:p-8 shadow-lg text-center space-y-6">
+        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl shadow-inner">
+          <i class="fa-solid fa-award"></i>
+        </div>
+        
+        <div>
+          <h3 class="text-xl sm:text-2xl font-black text-slate-900">恭喜完成第一節 10 題核心觀念測驗！</h3>
+          <p class="text-sm text-slate-600 max-w-md mx-auto mt-1">
+            您已作答完成，成績與作答紀錄已彙整如下：
+          </p>
+        </div>
+        
+        <!-- 4 欄結算資訊面板：總題數、答對題數、得分、總作答時間 -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto py-1">
+          <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+            <div class="text-xs text-slate-500 font-medium">總題數</div>
+            <div class="text-xl font-bold text-slate-800 mt-0.5">10 題</div>
+          </div>
+          <div class="bg-emerald-50 p-3.5 rounded-xl border border-emerald-200">
+            <div class="text-xs text-emerald-600 font-medium">答對題數</div>
+            <div id="finalCorrectCount" class="text-xl font-bold text-emerald-700 mt-0.5">0 題</div>
+          </div>
+          <div class="bg-indigo-50 p-3.5 rounded-xl border border-indigo-200">
+            <div class="text-xs text-indigo-600 font-medium">測驗分數</div>
+            <div id="finalScore" class="text-xl font-bold text-indigo-700 mt-0.5">0 分</div>
+          </div>
+          <div class="bg-amber-50 p-3.5 rounded-xl border border-amber-200">
+            <div class="text-xs text-amber-600 font-medium">作答用時</div>
+            <div id="finalDuration" class="text-xl font-bold text-amber-800 mt-0.5 font-mono">00:00</div>
+          </div>
+        </div>
+
+        <!-- Cloudflare D1 資料庫寫入狀態 -->
+        <div id="d1SyncBox" class="p-4 rounded-xl border max-w-2xl mx-auto text-left text-xs space-y-1.5 transition-all">
+          <!-- 由 JS 動態注入寫入狀態 -->
+        </div>
+
+        <!-- 錯題深入複習專區 -->
+        <div class="max-w-2xl mx-auto text-left space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <h4 class="font-bold text-sm text-slate-900 flex items-center space-x-2">
+              <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
+              <span>錯題複習專區 (<span id="wrongCountLabel">0</span> 題需加強)</span>
+            </h4>
+            <span class="text-xs text-slate-400">詳列錯誤選項與正解剖析</span>
+          </div>
+
+          <div id="wrongQuestionsContainer" class="space-y-3">
+            <!-- 錯題清單由 JS 渲染 -->
+          </div>
+        </div>
+
+        <!-- 底部功能按鈕 -->
+        <div class="pt-2 flex flex-wrap items-center justify-center gap-3">
+          <button id="viewHistoryFromSummaryBtn" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 shadow-sm transition">
+            <i class="fa-solid fa-clock-rotate-left mr-1.5"></i>查看 D1 歷史成績紀錄
+          </button>
+          <button id="restartBtn" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 shadow transition">
+            <i class="fa-solid fa-arrow-rotate-right mr-1.5"></i>重新作答測驗
+          </button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- 學生身分登記彈窗 (學號、姓名) -->
+  <div id="studentModalOverlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 border border-slate-200">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-base text-slate-900 flex items-center space-x-2">
+          <i class="fa-solid fa-user-graduate text-indigo-600"></i>
+          <span>學生身分登記</span>
+        </h3>
+        <button id="closeStudentModal" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-500 leading-relaxed">
+        為將您的<span class="font-semibold text-slate-800">作答時間、測驗分數與錯題資料</span>完整記錄至 Cloudflare D1 資料庫，請填寫您的學號與姓名。
+      </p>
+
+      <form id="studentForm" class="space-y-4">
+        <div>
+          <label for="studentIdInput" class="block text-xs font-bold text-slate-700 mb-1">
+            <i class="fa-solid fa-id-badge mr-1 text-slate-400"></i>學號 (Student ID) *
+          </label>
+          <input type="text" id="studentIdInput" required placeholder="例如：B11001 或 S12345" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono">
+        </div>
+
+        <div>
+          <label for="studentNameInput" class="block text-xs font-bold text-slate-700 mb-1">
+            <i class="fa-solid fa-user mr-1 text-slate-400"></i>姓名 (Name) *
+          </label>
+          <input type="text" id="studentNameInput" required placeholder="例如：王小明" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+
+        <div class="pt-2 flex items-center justify-end space-x-2">
+          <button type="button" id="cancelStudentModal" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition">
+            取消
+          </button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow transition">
+            儲存身分並啟用資料庫
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 歷史作答紀錄彈窗 (從 D1 資料庫讀取) -->
+  <!-- 歷史作答紀錄與全班學習歷程彈窗 (從 D1 資料庫讀取) -->
+  <div id="historyModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-5xl w-full p-4 sm:p-6 shadow-2xl space-y-4 border border-slate-200 max-h-[92vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 flex-shrink-0">
+        <div>
+          <h3 class="font-bold text-base sm:text-lg text-slate-900 flex items-center space-x-2">
+            <i class="fa-solid fa-graduation-cap text-indigo-600"></i>
+            <span>全班學習歷程與作答紀錄儀表板</span>
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">即時連線 Cloudflare D1 資料庫 <code class="font-mono text-slate-700">autism-comm-disorders-db</code></p>
+        </div>
+        <button id="closeHistoryModal" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <!-- 分頁標籤切換 -->
+      <div class="flex items-center justify-between border-b border-slate-200 flex-shrink-0">
+        <div class="flex space-x-2">
+          <button id="tabSubmissionsBtn" class="px-4 py-2 text-xs sm:text-sm font-bold border-b-2 border-indigo-600 text-indigo-700 flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-table-list"></i>
+            <span>學生測驗總表 (<span id="submissionCountBadge">0</span>)</span>
+          </button>
+          <button id="tabTutorSessionsBtn" class="px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-robot"></i>
+            <span>AI 蘇格拉底破障歷程 (<span id="tutorCountBadge">0</span>)</span>
+          </button>
+        </div>
+        <div class="text-[11px] text-slate-400 hidden md:block">
+          點擊任意學生紀錄可立即展開「完整作答卷」
+        </div>
+      </div>
+
+      <!-- 篩選與工具列 -->
+      <div class="flex items-center justify-between gap-3 flex-wrap flex-shrink-0 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+        <div class="flex items-center space-x-2">
+          <button id="filterMyRecordsBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 shadow-sm hover:bg-slate-100">
+            僅看我的紀錄
+          </button>
+          <button id="filterAllRecordsBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300">
+            查看全班紀錄
+          </button>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button id="exportCsvBtn" class="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg transition flex items-center space-x-1 shadow-sm">
+            <i class="fa-solid fa-file-excel text-xs text-emerald-600"></i>
+            <span>匯出測驗總表 (CSV)</span>
+          </button>
+          <button id="exportTutorCsvBtn" class="px-3 py-1.5 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-300 rounded-lg transition flex items-center space-x-1 shadow-sm">
+            <i class="fa-solid fa-file-lines text-xs text-purple-600"></i>
+            <span>匯出 AI 歷程 (CSV)</span>
+          </button>
+          <button id="refreshHistoryBtn" class="px-3 py-1.5 text-xs font-semibold text-autism-700 bg-autism-50 hover:bg-autism-100 border border-autism-200 rounded-lg transition flex items-center space-x-1">
+            <i class="fa-solid fa-rotate text-xs"></i>
+            <span>重新整理</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 分頁一：學生測驗總表表格容器 -->
+      <div id="submissionsTabContent" class="flex-1 overflow-y-auto custom-scrollbar border border-slate-200 rounded-xl">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100 text-slate-600 uppercase text-[11px] font-bold sticky top-0 border-b border-slate-200">
+            <tr>
+              <th class="px-3 py-2.5">序號</th>
+              <th class="px-3 py-2.5">提交時間</th>
+              <th class="px-3 py-2.5">學號</th>
+              <th class="px-3 py-2.5">姓名</th>
+              <th class="px-3 py-2.5">測驗成績</th>
+              <th class="px-3 py-2.5">作答時間</th>
+              <th class="px-3 py-2.5">錯題題號</th>
+              <th class="px-3 py-2.5 text-center">師生共覽操作</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody" class="divide-y divide-slate-100 font-mono">
+            <tr>
+              <td colspan="8" class="px-4 py-8 text-center text-slate-400 font-sans">
+                <i class="fa-solid fa-spinner fa-spin mr-2"></i>正在載入 D1 資料庫紀錄...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 分頁二：AI 蘇格拉底破障歷程表格容器 -->
+      <div id="tutorSessionsTabContent" class="flex-1 overflow-y-auto custom-scrollbar border border-slate-200 rounded-xl hidden">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-violet-50 text-violet-800 uppercase text-[11px] font-bold sticky top-0 border-b border-violet-200">
+            <tr>
+              <th class="px-3 py-2.5">ID</th>
+              <th class="px-3 py-2.5">啟動時間</th>
+              <th class="px-3 py-2.5">學號</th>
+              <th class="px-3 py-2.5">姓名</th>
+              <th class="px-3 py-2.5">探討題號</th>
+              <th class="px-3 py-2.5">初選／正解</th>
+              <th class="px-3 py-2.5">對話輪數</th>
+              <th class="px-3 py-2.5">破障狀態</th>
+              <th class="px-3 py-2.5 text-center">對話逐字稿</th>
+            </tr>
+          </thead>
+          <tbody id="tutorTableBody" class="divide-y divide-slate-100 font-mono">
+            <tr>
+              <td colspan="9" class="px-4 py-8 text-center text-slate-400 font-sans">
+                <i class="fa-solid fa-spinner fa-spin mr-2"></i>正在載入 AI 家教對話歷程...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex items-center justify-between pt-2 flex-shrink-0 border-t border-slate-100 text-xs text-slate-500">
+        <div>
+          <i class="fa-regular fa-lightbulb text-amber-500 mr-1"></i>
+          <span>提示：點擊「🔍 檢視全卷」可投影該生全部題目、選項與詳解進行課堂討論。</span>
+        </div>
+        <button id="confirmCloseHistoryModal" class="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition">
+          關閉視窗
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 師生檢視單一學生完整考卷彈窗 (Exam Paper Review Modal) -->
+  <div id="examPaperReviewModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl space-y-4 border border-slate-200 max-h-[92vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 flex-shrink-0">
+        <div>
+          <h3 class="font-bold text-base sm:text-lg text-slate-900 flex items-center space-x-2">
+            <i class="fa-solid fa-clipboard-check text-emerald-600"></i>
+            <span id="reviewStudentTitle">學生個人完整作答卷檢視</span>
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5" id="reviewStudentSubTitle">作答時間、成績與 10 題完整選項逐題對照</p>
+        </div>
+        <button id="closeExamPaperReviewModal" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <!-- 學生作答成績摘要條 -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex-shrink-0" id="reviewScoreBar">
+        <!-- 由 JS 動態注入 -->
+      </div>
+
+      <!-- 10 題完整作答清單容器 -->
+      <div id="reviewQuestionsContainer" class="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
+        <!-- 由 JS 渲染 10 題題目、學生所選、正確答案與詳解 -->
+      </div>
+
+      <div class="text-right pt-2 flex-shrink-0 border-t border-slate-100">
+        <button id="confirmCloseExamPaperReview" class="px-5 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition">
+          返回歷史紀錄
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI 蘇格拉底對話逐字稿檢視彈窗 (Session Transcript Modal) -->
+  <div id="sessionTranscriptModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl space-y-3 border border-violet-200 max-h-[92vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 flex-shrink-0">
+        <div>
+          <h3 class="font-bold text-base text-slate-900 flex items-center space-x-2">
+            <i class="fa-solid fa-comments text-violet-600"></i>
+            <span id="transcriptModalTitle">AI 蘇格拉底家教對話逐字稿</span>
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5" id="transcriptModalSubTitle">完整保留學生思考盲點、提問與觀念突破歷程</p>
+        </div>
+        <button id="closeTranscriptModal" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <!-- 題目與脈絡卡片 -->
+      <div id="transcriptQuestionContext" class="p-3 bg-violet-50/80 rounded-xl border border-violet-200 text-xs text-slate-700 flex-shrink-0">
+        <!-- 由 JS 填入 -->
+      </div>
+
+      <!-- 對話泡泡容器 -->
+      <div id="transcriptMessagesContainer" class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3 bg-slate-50 rounded-xl border border-slate-200">
+        <!-- 逐字稿泡泡由 JS 動態生成 -->
+      </div>
+
+      <div class="text-right pt-2 flex-shrink-0 border-t border-slate-100">
+        <button id="confirmCloseTranscriptModal" class="px-5 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition">
+          關閉逐字稿
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- D1 資料庫資訊彈窗 -->
+  <div id="d1ModalOverlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-base text-slate-900 flex items-center space-x-2">
+          <i class="fa-solid fa-database text-sky-600"></i>
+          <span>Cloudflare D1 資料庫架構資訊</span>
+        </h3>
+        <button id="closeD1Modal" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div class="text-xs text-slate-600 space-y-2 font-mono bg-slate-50 p-3.5 rounded-xl border border-slate-200 overflow-x-auto">
+        <div><strong class="text-slate-900">Database Name:</strong> autism-comm-disorders-db</div>
+        <div><strong class="text-slate-900">Database UUID:</strong> 8475edc2-cda6-4db2-8b7d-218b25d223b1</div>
+        <div><strong class="text-slate-900">Binding Name:</strong> autism_comm_disorders_db</div>
+        <div><strong class="text-slate-900">Storage Tables:</strong> chapters, questions, question_options, student_submissions</div>
+        <div><strong class="text-slate-900">Submission Columns:</strong> student_id, student_name, score, wrong_questions, duration_seconds</div>
+      </div>
+      <p class="text-xs text-slate-500 leading-relaxed">
+        本系統作答數據即時寫入 Cloudflare D1 分散式邊緣資料庫，支援學號、姓名、作答時長、成績以及完整錯題解析存儲與回溯。
+      </p>
+      <div class="text-right pt-2">
+        <button id="confirmCloseD1Modal" class="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition">
+          關閉
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI 蘇格拉底家教互動彈窗 / Drawer -->
+  <div id="aiTutorOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-0 sm:p-4">
+    <div class="bg-white sm:rounded-2xl max-w-2xl w-full shadow-2xl border border-violet-200 h-full sm:h-[92vh] sm:max-h-[780px] flex flex-col overflow-hidden">
+      <!-- 頂部 Header -->
+      <div class="bg-gradient-to-r from-violet-700 via-indigo-700 to-purple-800 text-white p-4 flex items-center justify-between flex-shrink-0 shadow-sm">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center text-xl shadow-inner">
+            🤖
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h3 class="font-bold text-sm sm:text-base text-white">AI 蘇格拉底家教 · 盲點引導</h3>
+              <span id="tutorStatusBadge" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-400 text-amber-950 uppercase tracking-wider">引導中</span>
+            </div>
+            <p class="text-[11px] text-violet-200 mt-0.5">以引導詰問找出觀念卡點，不直接給答案，陪您一步步推導正解</p>
+          </div>
+        </div>
+        <button id="closeAiTutorModal" class="text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10 transition" title="關閉家教視窗">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- 題目與四個選項完整對照卡片 (隨時可供學生參照與收合) -->
+      <div class="bg-violet-50/70 border-b border-violet-100 flex-shrink-0 transition-all">
+        <!-- 題幹資訊列與收合切換 -->
+        <div class="px-4 py-2.5 flex items-center justify-between cursor-pointer select-none hover:bg-violet-100/50 transition" id="toggleQuestionContextBtn" title="點擊收合或展開題目與選項">
+          <div class="flex items-center space-x-2 truncate mr-2">
+            <span class="font-bold text-violet-800 bg-violet-200 px-2 py-0.5 rounded text-xs flex-shrink-0" id="tutorQuestionOrderTag">第 1 題</span>
+            <span class="font-bold text-slate-800 text-xs truncate" id="tutorQuestionSummaryText">題目載入中...</span>
+          </div>
+          <div class="flex items-center space-x-2 flex-shrink-0">
+            <span class="text-[11px] text-violet-700 font-mono hidden sm:inline" id="tutorStudentTag"></span>
+            <span class="text-xs text-violet-700 font-bold flex items-center space-x-1 bg-white px-2 py-0.5 rounded-md border border-violet-200 shadow-sm hover:bg-violet-50">
+              <span id="toggleQuestionContextText">收合選項</span>
+              <i class="fa-solid fa-chevron-up text-[10px] transition-transform duration-200" id="toggleQuestionContextIcon"></i>
+            </span>
+          </div>
+        </div>
+
+        <!-- 展開後的完整題目與四個選項 (A, B, C, D) 區域 -->
+        <div id="tutorQuestionContextPanel" class="px-4 pb-3 pt-1 border-t border-violet-100/80 bg-white/95 space-y-2 text-xs transition-all max-h-56 overflow-y-auto custom-scrollbar">
+          <div class="flex items-start space-x-2">
+            <span class="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded flex-shrink-0" id="tutorSourceTag">
+              【診斷準則】
+            </span>
+            <p id="tutorFullQuestionText" class="text-slate-900 font-semibold leading-relaxed flex-1">
+              <!-- 完整題幹 -->
+            </p>
+          </div>
+          <div id="tutorOptionsList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            <!-- 由 JS 渲染 A, B, C, D 四個選項，並清楚標記「👉 您的選擇」與「✅ 標準解答」 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 對話訊息串列容器 -->
+      <div id="tutorChatMessages" class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3.5 bg-slate-50/60">
+        <!-- 訊息泡泡由 JS 動態生成 -->
+      </div>
+
+      <!-- 快捷回應提示按鈕 (Quick Prompt Chips) -->
+      <div id="tutorQuickChips" class="px-4 py-2 bg-white border-t border-slate-100 flex items-center space-x-2 overflow-x-auto text-[11px] flex-shrink-0 custom-scrollbar">
+        <span class="text-slate-400 font-medium whitespace-nowrap"><i class="fa-regular fa-lightbulb mr-1"></i>快捷思考：</span>
+        <button type="button" class="quick-chip px-2.5 py-1 bg-violet-50 text-violet-700 hover:bg-violet-100 rounded-full border border-violet-200 whitespace-nowrap transition">
+          我不確定這兩個準則的差異
+        </button>
+        <button type="button" class="quick-chip px-2.5 py-1 bg-violet-50 text-violet-700 hover:bg-violet-100 rounded-full border border-violet-200 whitespace-nowrap transition">
+          為什麼我的選項不合適？
+        </button>
+        <button type="button" class="quick-chip px-2.5 py-1 bg-violet-50 text-violet-700 hover:bg-violet-100 rounded-full border border-violet-200 whitespace-nowrap transition">
+          可以再給我一點線索嗎？
+        </button>
+      </div>
+
+      <!-- 底部輸入列 -->
+      <div class="p-3 sm:p-4 bg-white border-t border-slate-200 flex-shrink-0">
+        <form id="tutorChatForm" class="flex items-center space-x-2">
+          <input 
+            type="text" 
+            id="tutorChatInput" 
+            placeholder="請回答 AI 家教的提問，或寫下您的困惑..." 
+            class="flex-1 px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition"
+            autocomplete="off"
+            required
+          />
+          <button 
+            type="submit" 
+            id="tutorSendBtn" 
+            class="px-4 sm:px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition flex items-center space-x-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+            <span>發送</span>
+            <i class="fa-solid fa-paper-plane text-xs"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 頁腳 -->
+  <footer class="bg-white border-t border-slate-200 py-8 mt-12 text-center text-xs text-slate-600">
+    <div class="max-w-7xl mx-auto px-4 space-y-2">
+      <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-900 font-semibold text-xs shadow-sm">
+        <i class="fa-solid fa-graduation-cap text-indigo-600"></i>
+        <span>亞洲大學 聽力暨語言治療學系 語言組 · 林樺鋒老師 製作</span>
+      </div>
+      <p class="font-bold text-slate-800 text-sm">自閉症與溝通障礙 多元教學互動與核心概念檢測平台</p>
+      <p class="text-[11px] text-slate-400 max-w-2xl mx-auto leading-relaxed">
+        專為專業教學設計 · 支援全學期多章節學習歷程追蹤 · AI 蘇格拉底深度破障微對話 · Cloudflare D1 雲端支援
+      </p>
+    </div>
+  </footer>
+
+  <!-- 應用程式互動邏輯 -->
+  <script>
+    // 注入題目數據
+    const quizData = {"chapter":{"id":1,"slug":"section-1-diagnosis-clinical-features","title":"第一節 自閉症兒童的診斷以及臨床表現","subtitle":"自閉症核心診斷標準與臨床表現檢測","description":"本章節針對自閉症（ASD）與亞斯伯格症（AS）之診斷標準演進（DSM-IV 至 DSM-5）、流行病學、致病成因、神經生理機轉及臨床行為特徵進行核心觀念檢測，每題均附選項逐項深入解析。"},"questions":[{"source":"【診斷準則】DSM-IV 亞斯伯格症鑑別","text":"按照美國精神醫學會出版的精神疾病診斷標準DSM-IV，以下何者不是亞斯伯格症（Asperger’s syndrome）的鑑定標準？","correct":"B","options":[{"key":"A","text":"缺乏社會互動","explanation":"【屬鑑定標準】DSM-IV中亞斯伯格症明確包含質的社會互動障礙（如非語言行為顯著受損、無法建立符合發展年齡的同儕關係、缺乏分享喜樂或興趣的自發行為、缺乏社交或情緒互惠）。"},{"key":"B","text":"出現過動行為","explanation":"【本題正確解答（非鑑定標準）】過動行為屬於注意力不足過動症（ADHD）的核心特徵，並非DSM-IV亞斯伯格症的核心診斷標準項目。"},{"key":"C","text":"沒有臨床上顯著的語言發展遲緩","explanation":"【屬鑑定標準】DSM-IV判定亞斯伯格症的重要準則之一為「沒有臨床上顯著的一般語言遲緩」（例如2歲前會使用單字、3歲前會使用溝通短句）。"},{"key":"D","text":"過度喜歡物品的部件","explanation":"【屬鑑定標準】在「侷限、重複及刻板的行為、興趣與活動模式」中，包含對物品局部部件（parts of objects）具有持續性的執著或迷戀。"}],"summary":"DSM-IV中亞斯伯格症與典型自閉症的核心差異在於AS沒有顯著的語言發展遲緩與認知發展落後；但兩者皆具備社會互動障礙與侷限刻板行為。過動行為則非其診斷標準。"},{"source":"【流行病學】性別比例與群體特徵","text":"有關自閉症（Autism）的描述何者正確？","correct":"A","options":[{"key":"A","text":"男生發生比例高於女生","explanation":"【本題正確解答】自閉症男女罹患比例約為 3:1 至 4:1，男童之盛行率顯著高於女童，此為歷年流行病學與學界權威研究共識。"},{"key":"B","text":"是同質群體（homogeneous population）","explanation":"【錯誤】自閉症為異質性極高（heterogeneous population）的類群障礙，每位個案在智力、口語能力、症狀嚴重度與感覺處理上皆有極大差異。"},{"key":"C","text":"最明顯特徵是在運算、溝通、解決問題能力的缺陷","explanation":"【錯誤】自閉症最核心且最本質的特徵是「社交溝通與社會互動缺陷」及「侷限、重複的行為模式」，而非單純運算或解決問題能力缺損。"},{"key":"D","text":"主要的病因是來自情緒剝奪（emotional deprivation）","explanation":"【錯誤】早期精神分析學派曾提出「冰箱母親（refrigerator mother）」的情緒剝奪假說，但早已被現代醫學與腦科學徹底推翻。"}],"summary":"自閉症盛行率男高於女（約4:1），且屬於異質性極高的光譜障礙；病因為神經生理發展異常，與父母教養或情緒剝奪完全無關。"},{"source":"【歷史與病因】Kanner 描述與生物根源","text":"有關自閉症（autism spectrum disorders）的敘述，何者錯誤？","correct":"D","options":[{"key":"A","text":"Kanner（1943）首先描述自閉症，並認為父母的冷漠態度是致病因素","explanation":"【正確敘述】Leo Kanner 在1943年發表《Autistic disturbances of affective contact》，首度將自閉症自精神分裂中區分出來，且其早期曾推論父母之知性冷漠可能為誘因。"},{"key":"B","text":"研究指出自閉症的發生有其生物性根源（biological roots）","explanation":"【正確敘述】現代神經影像學、分子遺傳學與神經發育生物學均充分證實自閉症具有多基因遺傳及神經迴路異常之生物性根源。"},{"key":"C","text":"95%以上的自閉症是終身的問題，不會痊癒為正常","explanation":"【正確敘述】自閉症為廣泛性神經發展障礙，特質與神經型態伴隨終身，雖能透過早療顯著提升適應生活能力，但95%以上個案無法「完全痊癒」成為典型發展個案。"},{"key":"D","text":"約25%的自閉症兒童伴隨有智能障礙","explanation":"【本題正確解答（錯誤敘述）】在傳統臨床診斷文獻與權威教材中，自閉症兒童約有 50%～70% 伴隨智能障礙（近年隨輕度/高功能納入ASD診斷，伴隨智障比例約佔30%~50%），但解非低至25%，因此選項敘述比例錯誤。"}],"summary":"自閉症為Leo Kanner於1943年首次提出，具明確生物與遺傳根源且多為終身障礙。傳統流行病學顯示其伴隨智能障礙之比例約50%~70%，遠高於25%之說法。"},{"source":"【診斷演進】DSM-IV 亞斯伯格症歷史","text":"有關亞斯伯格症（Asperger’s syndrome, AS）的診斷標準，何者錯誤？","correct":"B","options":[{"key":"A","text":"智力及語言發展沒有明顯落後","explanation":"【正確敘述】依DSM-IV準則，亞斯伯格症個案在認知智力表現及早期語言里程碑上無臨床顯著落後。"},{"key":"B","text":"DSM-IV中，尚未正式列出AS的診斷標準","explanation":"【本題正確解答（錯誤敘述）】美國精神醫學會早於 1994 年出版之 DSM-IV 中，已正式將「亞斯伯格疾患（Asperger Disorder）」獨立列為廣泛性發展障礙（PDD）之一。"},{"key":"C","text":"有社交互動的困難","explanation":"【正確敘述】AS個案具備質的社會互動障礙（如無法理解非語言社交線索、缺乏社會情緒互惠性）。"},{"key":"D","text":"偏好某些行為、興趣或活動模式","explanation":"【正確敘述】具有侷限、重複且強烈刻板的特殊興趣或固著儀式行為。"}],"summary":"DSM-IV（1994）已正式將亞斯伯格症納入診斷手冊中；其診斷具備社交互動困難與侷限刻板行為，但無顯著語言及認知發展落後。"},{"source":"【臨床鑑別】個案行為特徵與 ADHD 鑑別","text":"在語言評估時，語言治療師發現8歲的祥祥有下列的語言及行為表現：①在治療室中一再跑跳、爬上爬下 ②尚未聽完指令說明就先行動 ③話說個不停但內容空洞、敘事情節雜亂無章 ④無法專注並完成有結構性或有訂定目標的活動 ⑤不會依溝通對象或情境的不同而調整說話方式及內容。 你認為祥祥最可能是以下那一類型的個案？","correct":"A","options":[{"key":"A","text":"注意力不足過動缺陷症（attention deficit/hyperactivity disorder, ADHD）","explanation":"【本題正確解答】祥祥表現出典型ADHD三大核心範疇：過動（跑跳爬）、衝動控制不良（未聽完指令就行動、插嘴滔滔不絕）與注意力缺乏（無法專注完成活動），伴隨因執行功能不足引起的言談組織雜亂與語用調節困難。"},{"key":"B","text":"亞斯伯格症（Asperger’s syndrome）","explanation":"【錯誤】亞斯伯格症個案之主要特徵在於特殊主題的固著深入探索與社交心智理論困難，題幹中顯著的衝動性肢體過動非AS首要鑑別徵候。"},{"key":"C","text":"聽覺處理異常（auditory processing disorder）","explanation":"【錯誤】APD主要表現在背景噪音下的聽語理解困難或聲音定位困難，不直接引起肢體跑跳與衝動過動。"},{"key":"D","text":"泛自閉症障礙（autism spectrum disorder）","explanation":"【錯誤】題幹描述主要反映注意力控制缺陷、抑制控制失敗（衝動性）與運動過動，診斷首選為 ADHD。"}],"summary":"祥祥的行為符合過動、衝動與注意力分散的三大ADHD特徵，言語上的滔滔不絕與語用問題亦常次發於ADHD執行功能缺陷。"},{"source":"【認知與語言】亞斯伯格症鑑定指標","text":"以下何者是亞斯伯格症（Asperger syndrome）兒童的鑑定標準之一？","correct":"C","options":[{"key":"A","text":"沒有明顯的社會互動能力缺陷","explanation":"【錯誤】社會互動能力的質性缺損是亞斯伯格症的必要核心診斷要件之一。"},{"key":"B","text":"有注意力缺陷或過動行為","explanation":"【錯誤】注意力缺陷與過動並非亞斯伯格症之法定核心診斷指標。"},{"key":"C","text":"沒有臨床上顯著的語言或認知發展遲緩","explanation":"【本題正確解答】依DSM-IV準則，亞斯伯格症在2歲前具備單字溝通、3歲前具備片語，且認知能力與自理能力在正常發展範圍內。"},{"key":"D","text":"非語文智力優於語文智力","explanation":"【錯誤】臨床測驗顯示，亞斯伯格症兒童通常語文智商（VIQ）多數等於或顯著優於操作非語文智商（PIQ），並非「非語文優於語文」。"}],"summary":"亞斯伯格症兒童具備社交互動困難與刻板興趣，但在早期認知與一般語言里程碑發展上沒有臨床顯著之遲緩。"},{"source":"【語用與鑑別】發展性語言障礙 (DLD) vs ASD","text":"關於發展性語言障礙（DLD）兒童的敘述，下列何者錯誤？","correct":"C","options":[{"key":"A","text":"發展性語言障礙兒童通常會伴隨出現讀寫學習問題，且這些學習問題不會隨著年齡增長而消失","explanation":"【正確敘述】DLD（舊稱SLI）兒童在進入學齡期後常延伸為閱讀理解與文字書寫障礙，多數個案之學習問題會持續至青少年期與成年期。"},{"key":"B","text":"發展性語言障礙是指個案出現明顯的語言問題，但沒有明確的生理因素造成","explanation":"【正確敘述】DLD診斷原則在於排除腦傷、聽障、全般性智障或嚴重神經生理病變，其語言落後找不到明確單一生理病因。"},{"key":"C","text":"發展性語言障礙兒童出現的語用問題和自閉症兒童類似","explanation":"【本題正確解答（錯誤敘述）】兩者語用本質截然不同：ASD之語用缺損源自根本性的社會溝通動機缺乏、共同注意力（joint attention）缺乏與心智理論（ToM）受損；DLD的語用問題通常是次發於語言形式（文法、字彙）理解與表達能力不足，非社交情緒互惠的本質喪失。"},{"key":"D","text":"發展性語言障礙兒童早期的語言發展歷程跟正常兒童相似，但速度較慢","explanation":"【正確敘述】DLD在語法與構詞習得的順序上大多依循正常兒童的發展歷程，但速度大幅延緩且落差拉大。"}],"summary":"DLD兒童的語用限制多源自語言工具本身（結構、詞彙）的不足；而自閉症（ASD）兒童的語用缺損則是深層的心智理論與社交互動動機異常，兩者不可混為一談。"},{"source":"【診斷手冊演進】DSM-5 vs DSM-IV 差異","text":"關於自閉症類群障礙（Autism spectrum disorder, ASD）的鑑別診斷，DSM-5與DSM-IV的差異為何？","correct":"B","options":[{"key":"A","text":"排除社交溝通缺陷","explanation":"【錯誤】DSM-5依舊將「社交溝通與社會互動缺陷」列為最重要的第一大核心領域。"},{"key":"B","text":"排除口語語言溝通缺陷","explanation":"【本題正確解答】DSM-IV原本將「口語溝通障礙（如口語遲緩或完全缺乏）」列為自閉症核心三大領域之一；但DSM-5考量許多ASD個案（如原亞斯伯格）無口語遲緩，因而將『口語語言發展遲緩』從核心診斷要件中排除，改列為附加之規格註記（specifier：with or without accompanying language impairment）。"},{"key":"C","text":"排除侷限及重複行為","explanation":"【錯誤】DSM-5依然保留第二大核心領域為「侷限、重複的行為、興趣或活動模式」，並新增了感覺處理異常維度。"},{"key":"D","text":"排除固著性的興趣與行為","explanation":"【錯誤】固著行為與刻板興趣在DSM-5中依舊是不可或缺之診斷要件。"}],"summary":"DSM-5由三合一向度改為二合一向度，將『口語發展遲緩』排除在ASD必要核心診斷之外（改列為臨床註記），突顯ASD的本質是社交溝通與侷限行為，而非口語語法發展本身。"},{"source":"【病因機轉】基因、腦神經與迷思釐清","text":"有關自閉症（ASD）的原因，下列敘述何者錯誤？","correct":"D","options":[{"key":"A","text":"可能是很多不同基因導致","explanation":"【正確敘述】全基因體定序（GWAS）證實自閉症具有高度多基因遺傳結構，涉及數百個基因變異之交互作用。"},{"key":"B","text":"有研究顯示腦區中的杏仁核有異常","explanation":"【正確敘述】神經解剖學與功能性MRI發現ASD個案的杏仁核（Amygdala，負責社交情緒解讀）在神經元密度、發育體積與功能連結上均存在顯著異常。"},{"key":"C","text":"和注射預防疫苗無關","explanation":"【正確敘述】國際眾多大規模實證醫學長期追蹤已徹底證實：MMR等任何常規疫苗注射與自閉症之發生完全無關。"},{"key":"D","text":"和父母親教養有關","explanation":"【本題正確解答（錯誤敘述）】自閉症是先天的神經系統發育障礙，與父母親之教養風格或關愛程度毫無因果關係。將自閉症怪罪於教養是過時且錯誤的觀念。"}],"summary":"自閉症的成因高度關聯多基因遺傳與大腦神經發展（如杏仁核、邊緣系統），與疫苗注射或父母親之教養方式完全無關。"},{"source":"【臨床行為與認知】仿說功能與認知優勢","text":"關於自閉症（ASD）兒童的敘述，下列何者錯誤？","correct":"B","options":[{"key":"A","text":"50％～70％ASD兒童的非口語智力測驗標準分數低於70","explanation":"【正確敘述】傳統流行病學統計與臨床文獻顯示，約半數至七成ASD兒童之非口語認知表現落在低於平均兩個標準差（標準分數<70，達輕度智障以上標準）。"},{"key":"B","text":"ASD兒童的鸚鵡式仿說（echolalia）是一種異常行為，不具溝通功能","explanation":"【本題正確解答（錯誤敘述）】現代語言病理學研究證實，ASD兒童的立即性或延宕性仿說具有豐富的溝通意圖與功能（如：確認訊息、請求、抗議、輪替回應、自我安撫與語音處理過渡策略），絕非『不具溝通功能的無效異常行為』。"},{"key":"C","text":"ASD兒童常出現固著或重複的話語、動作或是物品使用","explanation":"【正確敘述】固著重複的語言（重複腳本台詞）、動作刻板（拍翅、搖擺）或排列物品為ASD的核心症狀表現。"},{"key":"D","text":"ASD兒童的區辨和短期記憶力為其優勢能力","explanation":"【正確敘述】弱中央聚合（weak central coherence）理論指出，ASD個案常具備突出的局部視覺區辨力、細節捕捉力與機械性短期記憶之認知優勢。"}],"summary":"自閉症兒童的鸚鵡式仿說（Echolalia）常具有積極的溝通功能與調節意圖，語言治療師應把握其仿說作為擴展真實溝通的介入橋樑，而非單純將其視為異常行為加以消弱。"}]};
+    const questions = quizData.questions;
+
+    // 學生身分資訊管理
+    let currentStudent = {
+      id: localStorage.getItem('autism_student_id') || '',
+      name: localStorage.getItem('autism_student_name') || ''
+    };
+
+    // 答題與計時狀態
+    const STORAGE_KEY = 'autism_quiz_sec1_state';
+    let userAnswers = {}; // { index: { selectedKey: 'A', isCorrect: true, duration: 12 } }
+    let durationSeconds = parseInt(localStorage.getItem('autism_quiz_duration') || '0', 10);
+    let timerInterval = null;
+    let isTimerRunning = false;
+    let hasSubmittedToD1 = false;
+
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        userAnswers = JSON.parse(saved);
+      }
+    } catch (e) {
+      console.warn('LocalStorage not available');
+    }
+
+    let currentIndex = 0; // 當前題號 (0-9)
+
+    // DOM 元素
+    const studentProfileBtn = document.getElementById('studentProfileBtn');
+    const studentProfileText = document.getElementById('studentProfileText');
+    const studentBanner = document.getElementById('studentBanner');
+    const studentBannerTitle = document.getElementById('studentBannerTitle');
+    const studentBannerDesc = document.getElementById('studentBannerDesc');
+    const openStudentModalFromBanner = document.getElementById('openStudentModalFromBanner');
+    const timerDisplayEl = document.getElementById('timerDisplay');
+
+    const questionTextEl = document.getElementById('questionText');
+    const examSourceTagEl = document.getElementById('examSourceTag');
+    const currentQuestionBadgeEl = document.getElementById('currentQuestionBadge');
+    const optionsContainerEl = document.getElementById('optionsContainer');
+    const explanationPanelEl = document.getElementById('explanationPanel');
+    const correctAnswerBadgeEl = document.getElementById('correctAnswerBadge');
+    const resultStatusTextEl = document.getElementById('resultStatusText');
+    const summaryExplanationTextEl = document.getElementById('summaryExplanationText');
+    const optionsExplanationListEl = document.getElementById('optionsExplanationList');
+    const statusIndicatorEl = document.getElementById('statusIndicator');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const questionNumberGridEl = document.getElementById('questionNumberGrid');
+    const answeredCountBadgeEl = document.getElementById('answeredCountBadge');
+    const accuracyBadgeEl = document.getElementById('accuracyBadge');
+
+    // 結算區 DOM
+    const completionSummaryCardEl = document.getElementById('completionSummaryCard');
+    const finalCorrectCountEl = document.getElementById('finalCorrectCount');
+    const finalScoreEl = document.getElementById('finalScore');
+    const finalDurationEl = document.getElementById('finalDuration');
+    const d1SyncBoxEl = document.getElementById('d1SyncBox');
+    const wrongCountLabelEl = document.getElementById('wrongCountLabel');
+    const wrongQuestionsContainerEl = document.getElementById('wrongQuestionsContainer');
+    const resetQuizBtn = document.getElementById('resetQuizBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const viewHistoryFromSummaryBtn = document.getElementById('viewHistoryFromSummaryBtn');
+
+    // 彈窗 DOM
+    const studentModalOverlay = document.getElementById('studentModalOverlay');
+    const studentForm = document.getElementById('studentForm');
+    const studentIdInput = document.getElementById('studentIdInput');
+    const studentNameInput = document.getElementById('studentNameInput');
+    const closeStudentModal = document.getElementById('closeStudentModal');
+    const cancelStudentModal = document.getElementById('cancelStudentModal');
+
+    const historyModalOverlay = document.getElementById('historyModalOverlay');
+    const historyRecordsBtn = document.getElementById('historyRecordsBtn');
+    const closeHistoryModal = document.getElementById('closeHistoryModal');
+    const confirmCloseHistoryModal = document.getElementById('confirmCloseHistoryModal');
+    const historyTableBody = document.getElementById('historyTableBody');
+    const refreshHistoryBtn = document.getElementById('refreshHistoryBtn');
+    const filterMyRecordsBtn = document.getElementById('filterMyRecordsBtn');
+    const filterAllRecordsBtn = document.getElementById('filterAllRecordsBtn');
+
+    // 歷史紀錄儀表板分頁與 D1 元件
+    const tabSubmissionsBtn = document.getElementById('tabSubmissionsBtn');
+    const tabTutorSessionsBtn = document.getElementById('tabTutorSessionsBtn');
+    const submissionsTabContent = document.getElementById('submissionsTabContent');
+    const tutorSessionsTabContent = document.getElementById('tutorSessionsTabContent');
+    const submissionCountBadge = document.getElementById('submissionCountBadge');
+    const tutorCountBadge = document.getElementById('tutorCountBadge');
+    const tutorTableBody = document.getElementById('tutorTableBody');
+    const exportTutorCsvBtn = document.getElementById('exportTutorCsvBtn');
+
+    // 師生全卷檢視彈窗 DOM
+    const examPaperReviewModalOverlay = document.getElementById('examPaperReviewModalOverlay');
+    const closeExamPaperReviewModal = document.getElementById('closeExamPaperReviewModal');
+    const confirmCloseExamPaperReview = document.getElementById('confirmCloseExamPaperReview');
+    const reviewStudentTitle = document.getElementById('reviewStudentTitle');
+    const reviewStudentSubTitle = document.getElementById('reviewStudentSubTitle');
+    const reviewScoreBar = document.getElementById('reviewScoreBar');
+    const reviewQuestionsContainer = document.getElementById('reviewQuestionsContainer');
+
+    // AI 對話逐字稿彈窗 DOM
+    const sessionTranscriptModalOverlay = document.getElementById('sessionTranscriptModalOverlay');
+    const closeTranscriptModal = document.getElementById('closeTranscriptModal');
+    const confirmCloseTranscriptModal = document.getElementById('confirmCloseTranscriptModal');
+    const transcriptModalTitle = document.getElementById('transcriptModalTitle');
+    const transcriptModalSubTitle = document.getElementById('transcriptModalSubTitle');
+    const transcriptQuestionContext = document.getElementById('transcriptQuestionContext');
+    const transcriptMessagesContainer = document.getElementById('transcriptMessagesContainer');
+
+    let currentLoadedTutorSessions = [];
+    let currentHistoryTab = 'submissions'; // 'submissions' or 'tutor'
+
+    // AI 蘇格拉底家教 DOM
+    const openAiTutorBtn = document.getElementById('openAiTutorBtn');
+    const aiTutorOverlay = document.getElementById('aiTutorOverlay');
+    const closeAiTutorModal = document.getElementById('closeAiTutorModal');
+    const tutorStatusBadge = document.getElementById('tutorStatusBadge');
+    const tutorSubTitle = document.getElementById('tutorSubTitle');
+    const tutorQuestionOrderTag = document.getElementById('tutorQuestionOrderTag');
+    const tutorQuestionSummaryText = document.getElementById('tutorQuestionSummaryText');
+    const tutorStudentTag = document.getElementById('tutorStudentTag');
+    const toggleQuestionContextBtn = document.getElementById('toggleQuestionContextBtn');
+    const toggleQuestionContextText = document.getElementById('toggleQuestionContextText');
+    const toggleQuestionContextIcon = document.getElementById('toggleQuestionContextIcon');
+    const tutorQuestionContextPanel = document.getElementById('tutorQuestionContextPanel');
+    const tutorSourceTag = document.getElementById('tutorSourceTag');
+    const tutorFullQuestionText = document.getElementById('tutorFullQuestionText');
+    const tutorOptionsList = document.getElementById('tutorOptionsList');
+    const tutorChatMessages = document.getElementById('tutorChatMessages');
+    const tutorChatForm = document.getElementById('tutorChatForm');
+    const tutorChatInput = document.getElementById('tutorChatInput');
+    const tutorSendBtn = document.getElementById('tutorSendBtn');
+    const tutorQuickChips = document.getElementById('tutorQuickChips');
+
+    let currentTutorSessionId = null;
+    let isTutorLoading = false;
+
+    let historyFilter = 'my'; // 'my' or 'all'
+    let currentLoadedRecords = [];
+
+    // 1. 時間格式化函式 (秒 -> mm:ss)
+    function formatTime(totalSeconds) {
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+    }
+
+    function formatTimeDisplayZh(totalSeconds) {
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      if (mins === 0) return secs + ' 秒';
+      return mins + ' 分 ' + secs + ' 秒';
+    }
+
+    // 2. 計時器控制
+    function startTimer() {
+      if (isTimerRunning) return;
+      isTimerRunning = true;
+      timerInterval = setInterval(() => {
+        durationSeconds++;
+        timerDisplayEl.innerText = formatTime(durationSeconds);
+        try {
+          localStorage.setItem('autism_quiz_duration', durationSeconds.toString());
+        } catch (e) {}
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      isTimerRunning = false;
+    }
+
+    // 3. 學生身分 UI 更新
+    function updateStudentUI() {
+      if (currentStudent.id && currentStudent.name) {
+        studentProfileText.innerText = currentStudent.id + ' ' + currentStudent.name;
+        studentBannerTitle.innerText = '學生：' + currentStudent.name + ' (學號：' + currentStudent.id + ')';
+        studentBannerDesc.innerText = '身分已登記完成。每次完成測驗，作答時間、分數與錯題將自動上傳至 Cloudflare D1 資料庫。';
+        studentBanner.className = 'p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between bg-emerald-50/70 border-emerald-200 text-emerald-950';
+        openStudentModalFromBanner.innerText = '修改身分';
+        openStudentModalFromBanner.className = 'px-3.5 py-1.5 bg-emerald-700 text-white hover:bg-emerald-800 text-xs font-semibold rounded-xl shadow-sm transition flex-shrink-0';
+      } else {
+        studentProfileText.innerText = '登記學號姓名';
+        studentBannerTitle.innerText = '尚未登記學生身分';
+        studentBannerDesc.innerText = '請先登記「學號」與「姓名」，系統將為您自動記錄作答時間、測驗成績與錯題至 Cloudflare D1 資料庫。';
+        studentBanner.className = 'p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between bg-indigo-50/70 border-indigo-200 text-indigo-950';
+        openStudentModalFromBanner.innerText = '立即登記';
+        openStudentModalFromBanner.className = 'px-3.5 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 text-xs font-semibold rounded-xl shadow-sm transition flex-shrink-0';
+      }
+    }
+
+    function openStudentModal() {
+      studentIdInput.value = currentStudent.id;
+      studentNameInput.value = currentStudent.name;
+      studentModalOverlay.classList.remove('hidden');
+    }
+
+    function closeStudentModalView() {
+      studentModalOverlay.classList.add('hidden');
+    }
+
+    studentProfileBtn.onclick = openStudentModal;
+    openStudentModalFromBanner.onclick = openStudentModal;
+    closeStudentModal.onclick = closeStudentModalView;
+    cancelStudentModal.onclick = closeStudentModalView;
+
+    studentForm.onsubmit = (e) => {
+      e.preventDefault();
+      const idVal = studentIdInput.value.trim();
+      const nameVal = studentNameInput.value.trim();
+      if (!idVal || !nameVal) {
+        alert('請完整輸入學號與姓名！');
+        return;
+      }
+      currentStudent.id = idVal;
+      currentStudent.name = nameVal;
+      try {
+        localStorage.setItem('autism_student_id', idVal);
+        localStorage.setItem('autism_student_name', nameVal);
+      } catch (e) {}
+
+      updateStudentUI();
+      closeStudentModalView();
+
+      // 若測驗已全做完但先前因缺身分未提交，現在立即觸發儲存
+      if (Object.keys(userAnswers).length === questions.length && !hasSubmittedToD1) {
+        submitResultsToD1();
+      }
+    };
+
+    // 4. 題號網格渲染
+    function renderQuestionGrid() {
+      questionNumberGridEl.innerHTML = '';
+      questions.forEach((q, idx) => {
+        const btn = document.createElement('button');
+        btn.innerText = idx + 1;
+        btn.className = getGridButtonClass(idx);
+        btn.onclick = () => {
+          currentIndex = idx;
+          renderQuestion();
+        };
+        questionNumberGridEl.appendChild(btn);
+      });
+    }
+
+    function getGridButtonClass(idx) {
+      const isCurrent = idx === currentIndex;
+      const ans = userAnswers[idx];
+
+      let base = 'w-7 h-7 rounded-lg text-xs font-bold transition flex items-center justify-center ';
+      if (isCurrent) {
+        base += 'ring-2 ring-white ring-offset-2 ring-offset-autism-600 ';
+      }
+
+      if (!ans) {
+        return base + (isCurrent ? 'bg-white text-autism-700' : 'bg-white/20 text-white hover:bg-white/30');
+      } else if (ans.isCorrect) {
+        return base + 'bg-emerald-400 text-emerald-950 font-black';
+      } else {
+        return base + 'bg-rose-400 text-rose-950 font-black';
+      }
+    }
+
+    // 5. 彙整錯題清單
+    function getWrongQuestions() {
+      const wrongList = [];
+      questions.forEach((q, idx) => {
+        const ans = userAnswers[idx];
+        if (ans && !ans.isCorrect) {
+          const userOpt = q.options.find(o => o.key === ans.selectedKey) || { text: '', explanation: '' };
+          const correctOpt = q.options.find(o => o.key === q.correct) || { text: '', explanation: '' };
+          wrongList.push({
+            sort_order: idx + 1,
+            source_tag: q.source,
+            question_text: q.text,
+            selected_key: ans.selectedKey,
+            selected_text: userOpt.text,
+            selected_explanation: userOpt.explanation,
+            correct_key: q.correct,
+            correct_text: correctOpt.text,
+            correct_explanation: correctOpt.explanation,
+            summary: q.summary
+          });
+        }
+      });
+      return wrongList;
+    }
+
+    // 6. 更新頂部統計數據與總結結算卡片
+    function updateStats() {
+      const answeredKeys = Object.keys(userAnswers);
+      const totalAnswered = answeredKeys.length;
+      let correctCount = 0;
+      answeredKeys.forEach(k => {
+        if (userAnswers[k].isCorrect) correctCount++;
+      });
+
+      answeredCountBadgeEl.innerText = totalAnswered;
+      const rate = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0;
+      accuracyBadgeEl.innerText = rate + '%';
+
+      // 檢查是否全部 10 題已做完
+      if (totalAnswered === questions.length) {
+        stopTimer(); // 停止計時
+        completionSummaryCardEl.classList.remove('hidden');
+        finalCorrectCountEl.innerText = correctCount + ' 題';
+        const score = correctCount * 10;
+        finalScoreEl.innerText = score + ' 分';
+        finalDurationEl.innerText = formatTime(durationSeconds);
+
+        renderWrongQuestionsSummary();
+
+        // 自動提交至 D1 資料庫
+        if (!hasSubmittedToD1) {
+          if (!currentStudent.id || !currentStudent.name) {
+            d1SyncBoxEl.className = 'p-4 rounded-xl border max-w-2xl mx-auto text-left text-xs bg-amber-50 border-amber-200 text-amber-900';
+            d1SyncBoxEl.innerHTML = `
+              <div class="flex items-center justify-between">
+                <div class="font-bold flex items-center">
+                  <i class="fa-solid fa-triangle-exclamation text-amber-600 mr-2 text-base"></i>
+                  尚未登記學號姓名，無法寫入資料庫
+                </div>
+                <button onclick="openStudentModal()" class="px-3 py-1 bg-amber-600 text-white rounded-lg font-bold hover:bg-amber-700">登記並儲存</button>
+              </div>
+              <p class="text-amber-700 mt-1">請填寫學號與姓名，系統將把作答時間（` + formatTimeDisplayZh(durationSeconds) + `）、成績（` + score + `分）及錯題記錄至 D1 資料庫。</p>
+            `;
+            openStudentModal();
+          } else {
+            submitResultsToD1();
+          }
+        }
+      } else {
+        completionSummaryCardEl.classList.add('hidden');
+      }
+    }
+
+    // 7. 渲染結算卡片的錯題深入複習專區
+    function renderWrongQuestionsSummary() {
+      const wrongList = getWrongQuestions();
+      wrongCountLabelEl.innerText = wrongList.length;
+      wrongQuestionsContainerEl.innerHTML = '';
+
+      if (wrongList.length === 0) {
+        wrongQuestionsContainerEl.innerHTML = `
+          <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 text-center font-medium">
+            <i class="fa-solid fa-circle-check text-emerald-600 text-lg mb-1 block"></i>
+            太厲害了！本次測驗 10 題完全答對，觀念完全掌握！
+          </div>
+        `;
+        return;
+      }
+
+      wrongList.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'p-4 bg-slate-50 rounded-xl border border-slate-200 text-left space-y-2';
+        div.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-800 text-xs">
+              <span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded font-black mr-1.5">第 ` + item.sort_order + ` 題</span>
+              <span class="text-slate-500">` + item.source_tag + `</span>
+            </span>
+            <span class="text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+              您選了【` + item.selected_key + `】· 正確為【` + item.correct_key + `】
+            </span>
+          </div>
+          <p class="text-xs text-slate-800 font-semibold leading-relaxed">` + item.question_text + `</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px] pt-1">
+            <div class="p-2.5 rounded-lg bg-rose-50/70 border border-rose-200 text-rose-900 leading-relaxed">
+              <strong class="font-bold block text-rose-800 mb-0.5"><i class="fa-solid fa-xmark mr-1"></i>您的選項【` + item.selected_key + `】` + item.selected_text + `：</strong>
+              <p class="text-slate-700">` + item.selected_explanation + `</p>
+            </div>
+            <div class="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200 text-emerald-900 leading-relaxed">
+              <strong class="font-bold block text-emerald-800 mb-0.5"><i class="fa-solid fa-check mr-1"></i>標準解答【` + item.correct_key + `】` + item.correct_text + `：</strong>
+              <p class="text-slate-700">` + item.correct_explanation + `</p>
+            </div>
+          </div>
+          <div class="text-[11px] text-slate-600 bg-white p-2 rounded-lg border border-slate-200">
+            <strong class="text-slate-800 font-bold"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i>核心歸納：</strong>` + item.summary + `
+          </div>
+          <div class="pt-1 flex justify-end">
+            <button onclick="startAiTutorForQuestionOrder(` + item.sort_order + `)" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-sm transition">
+              <i class="fa-solid fa-robot mr-1"></i>
+              <span>與 AI 蘇格拉底家教探討此題</span>
+              <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>
+            </button>
+          </div>
+        `;
+        wrongQuestionsContainerEl.appendChild(div);
+      });
+    }
+
+    // 8. 提交資料至 Cloudflare D1 資料庫
+    async function submitResultsToD1() {
+      if (!currentStudent.id || !currentStudent.name) return;
+
+      const answeredKeys = Object.keys(userAnswers);
+      if (answeredKeys.length < questions.length) return;
+
+      let correctCount = 0;
+      answeredKeys.forEach(k => {
+        if (userAnswers[k].isCorrect) correctCount++;
+      });
+      const score = correctCount * 10;
+      const wrongList = getWrongQuestions();
+
+      // UI 顯示儲存中
+      d1SyncBoxEl.className = 'p-4 rounded-xl border max-w-2xl mx-auto text-left text-xs bg-sky-50 border-sky-200 text-sky-900';
+      d1SyncBoxEl.innerHTML = `
+        <div class="flex items-center space-x-2 font-bold">
+          <i class="fa-solid fa-circle-notch fa-spin text-sky-600 text-base"></i>
+          <span>正在將作答時間、分數與錯題記錄同步寫入 Cloudflare D1 資料庫...</span>
+        </div>
+      `;
+
+      try {
+        const payload = {
+          chapter_id: 1,
+          student_id: currentStudent.id,
+          student_name: currentStudent.name,
+          score: score,
+          correct_count: correctCount,
+          total_questions: questions.length,
+          wrong_questions: wrongList,
+          duration_seconds: durationSeconds
+        };
+
+        const res = await fetch('/api/submissions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          hasSubmittedToD1 = true;
+          d1SyncBoxEl.className = 'p-4 rounded-xl border max-w-2xl mx-auto text-left text-xs bg-emerald-50 border-emerald-300 text-emerald-950 space-y-1';
+          d1SyncBoxEl.innerHTML = `
+            <div class="flex items-center justify-between">
+              <div class="font-bold text-sm text-emerald-800 flex items-center">
+                <i class="fa-solid fa-cloud-arrow-up text-emerald-600 mr-2 text-base"></i>
+                已成功儲存至 Cloudflare D1 資料庫！
+              </div>
+              <span class="bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded font-mono font-bold">記錄編號 #` + (data.submission_id || 'OK') + `</span>
+            </div>
+            <div class="text-emerald-800 flex flex-wrap gap-x-4 gap-y-1 pt-1 font-medium">
+              <span>👤 學生：<strong>` + currentStudent.name + ` (` + currentStudent.id + `)</strong></span>
+              <span>⏱️ 作答時間：<strong>` + formatTimeDisplayZh(durationSeconds) + `</strong></span>
+              <span>🏆 測驗分數：<strong>` + score + ` 分</strong></span>
+              <span>❌ 錯題數：<strong>` + wrongList.length + ` 題</strong></span>
+            </div>
+            <div class="text-[11px] text-emerald-700 font-mono pt-0.5">
+              儲存節點：autism-comm-disorders-db · 邊緣執行成功
+            </div>
+          `;
+        } else {
+          throw new Error(data.error || '儲存失敗');
+        }
+      } catch (err) {
+        console.error('D1 sync error:', err);
+        d1SyncBoxEl.className = 'p-4 rounded-xl border max-w-2xl mx-auto text-left text-xs bg-rose-50 border-rose-200 text-rose-900';
+        d1SyncBoxEl.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div class="font-bold flex items-center">
+              <i class="fa-solid fa-circle-exclamation text-rose-600 mr-2 text-base"></i>
+              寫入 D1 資料庫失敗：` + err.message + `
+            </div>
+            <button onclick="submitResultsToD1()" class="px-3 py-1 bg-rose-600 text-white rounded-lg font-bold hover:bg-rose-700">重試</button>
+          </div>
+        `;
+      }
+    }
+
+    // 9. 渲染特定題目
+    function renderQuestion() {
+      const q = questions[currentIndex];
+
+      // 題幹與來源
+      currentQuestionBadgeEl.innerText = '第 ' + (currentIndex + 1) + ' 題 / 共 ' + questions.length + ' 題';
+      examSourceTagEl.innerText = q.source;
+      questionTextEl.innerText = q.text;
+
+      // 導航按鈕狀態
+      prevBtn.disabled = (currentIndex === 0);
+      nextBtn.disabled = (currentIndex === questions.length - 1);
+
+      const answered = userAnswers[currentIndex];
+
+      // 狀態指示徽章
+      if (answered) {
+        statusIndicatorEl.classList.remove('hidden');
+        if (answered.isCorrect) {
+          statusIndicatorEl.className = 'text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200';
+          statusIndicatorEl.innerHTML = '<i class="fa-solid fa-check mr-1"></i>回答正確';
+        } else {
+          statusIndicatorEl.className = 'text-xs font-bold px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200';
+          statusIndicatorEl.innerHTML = '<i class="fa-solid fa-xmark mr-1"></i>回答錯誤';
+        }
+      } else {
+        statusIndicatorEl.classList.add('hidden');
+      }
+
+      // 生成選項按鈕
+      optionsContainerEl.innerHTML = '';
+      q.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = getOptionButtonClass(opt.key, q.correct, answered);
+        
+        let iconHtml = '<span class="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-xs group-hover:bg-autism-100 group-hover:text-autism-700">' + opt.key + '</span>';
+        
+        if (answered) {
+          if (opt.key === q.correct) {
+            iconHtml = '<span class="w-7 h-7 rounded-lg bg-emerald-600 text-white font-black flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-check"></i></span>';
+          } else if (opt.key === answered.selectedKey && !answered.isCorrect) {
+            iconHtml = '<span class="w-7 h-7 rounded-lg bg-rose-600 text-white font-black flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-xmark"></i></span>';
+          }
+        }
+
+        btn.innerHTML = `
+          <div class="flex items-start space-x-3 w-full text-left">
+            ` + iconHtml + `
+            <span class="text-sm font-medium flex-1 pt-0.5 leading-relaxed text-slate-800">` + opt.text + `</span>
+          </div>
+        `;
+
+        // 點擊選項觸發作答
+        btn.onclick = () => {
+          selectAnswer(opt.key);
+        };
+
+        optionsContainerEl.appendChild(btn);
+      });
+
+      // 渲染即時解析面板
+      if (answered) {
+        explanationPanelEl.classList.remove('hidden');
+        correctAnswerBadgeEl.innerText = q.correct;
+        
+        if (answered.isCorrect) {
+          resultStatusTextEl.className = 'text-sm font-bold text-emerald-600 flex items-center';
+          resultStatusTextEl.innerHTML = '<i class="fa-solid fa-circle-check mr-1.5"></i>恭喜答對！正確答案為【' + q.correct + '】';
+        } else {
+          resultStatusTextEl.className = 'text-sm font-bold text-rose-600 flex items-center';
+          resultStatusTextEl.innerHTML = '<i class="fa-solid fa-circle-xmark mr-1.5"></i>您選擇了【' + answered.selectedKey + '】，正確解答為【' + q.correct + '】';
+        }
+
+        summaryExplanationTextEl.innerText = q.summary || '本題考查核心重點，請詳讀下方選項解析。';
+
+        // 渲染 A, B, C, D 逐項剖析
+        optionsExplanationListEl.innerHTML = '';
+        q.options.forEach(opt => {
+          const isCorrectOpt = opt.key === q.correct;
+          const isUserPicked = answered.selectedKey === opt.key;
+          const div = document.createElement('div');
+          
+          let cardBg = isCorrectOpt ? 'bg-emerald-50/80 border-emerald-200' : (isUserPicked ? 'bg-rose-50/70 border-rose-200' : 'bg-white border-slate-200');
+          let keyBadge = isCorrectOpt ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700';
+
+          div.className = 'p-3 rounded-lg border text-xs sm:text-sm leading-relaxed ' + cardBg;
+          div.innerHTML = `
+            <div class="flex items-start space-x-2">
+              <span class="font-bold px-1.5 py-0.5 rounded text-xs ` + keyBadge + `">` + opt.key + `</span>
+              <div class="flex-1">
+                <strong class="text-slate-800">${opt.text}</strong>
+                <p class="text-slate-600 mt-1">${opt.explanation}</p>
+              </div>
+            </div>
+          `;
+          optionsExplanationListEl.appendChild(div);
+        });
+      } else {
+        explanationPanelEl.classList.add('hidden');
+      }
+
+      renderQuestionGrid();
+      updateStats();
+    }
+
+    function getOptionButtonClass(optKey, correctKey, answered) {
+      let base = 'group w-full p-4 rounded-xl border text-left transition-all duration-200 flex items-center justify-between ';
+      
+      if (!answered) {
+        return base + 'bg-white border-slate-200 hover:border-autism-500 hover:bg-autism-50/40 hover:shadow-sm cursor-pointer';
+      }
+
+      // 已作答狀態
+      if (optKey === correctKey) {
+        return base + 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/20 shadow-sm cursor-default';
+      } else if (optKey === answered.selectedKey) {
+        return base + 'bg-rose-50 border-rose-400 ring-2 ring-rose-400/20 cursor-default';
+      } else {
+        return base + 'bg-slate-50 border-slate-200 opacity-60 cursor-default';
+      }
+    }
+
+    // 10. 學生作答處理
+    function selectAnswer(selectedKey) {
+      // 若計時尚未啟動，首次作答啟動計時
+      if (!isTimerRunning && Object.keys(userAnswers).length < questions.length) {
+        startTimer();
+      }
+
+      const q = questions[currentIndex];
+      const isCorrect = (selectedKey === q.correct);
+
+      // 儲存此題作答紀錄
+      userAnswers[currentIndex] = {
+        selectedKey: selectedKey,
+        isCorrect: isCorrect,
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(userAnswers));
+      } catch (e) {}
+
+      // 重新渲染題目以展示解答與解析
+      renderQuestion();
+    }
+
+    // 導航控制
+    prevBtn.onclick = () => {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderQuestion();
+      }
+    };
+
+    nextBtn.onclick = () => {
+      if (currentIndex < questions.length - 1) {
+        currentIndex++;
+        renderQuestion();
+      }
+    };
+
+    // 重新測驗
+    function resetQuiz() {
+      if (confirm('確定要清除目前的測驗紀錄並重新開始嗎？')) {
+        stopTimer();
+        durationSeconds = 0;
+        timerDisplayEl.innerText = '00:00';
+        userAnswers = {};
+        hasSubmittedToD1 = false;
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem('autism_quiz_duration');
+        } catch (e) {}
+        currentIndex = 0;
+        startTimer();
+        renderQuestion();
+      }
+    }
+
+    resetQuizBtn.onclick = resetQuiz;
+    restartBtn.onclick = resetQuiz;
+
+    // 11. 歷史作答紀錄查詢 (Cloudflare D1)
+    async function loadHistoryRecords() {
+      historyTableBody.innerHTML = `
+        <tr>
+          <td colspan="8" class="px-4 py-8 text-center text-slate-400 font-sans">
+            <i class="fa-solid fa-spinner fa-spin mr-2"></i>正在向 Cloudflare D1 資料庫查詢歷史紀錄...
+          </td>
+        </tr>
+      `;
+
+      let url = '/api/submissions';
+      if (historyFilter === 'my' && currentStudent.id) {
+        url += '?student_id=' + encodeURIComponent(currentStudent.id);
+      }
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || '查詢失敗');
+
+        const records = data.data || [];
+        currentLoadedRecords = records;
+        if (submissionCountBadge) submissionCountBadge.innerText = records.length;
+
+        if (records.length === 0) {
+          historyTableBody.innerHTML = `
+            <tr>
+              <td colspan="8" class="px-4 py-8 text-center text-slate-400 font-sans">
+                目前尚無作答紀錄。完成 10 題測驗後紀錄將自動儲存於此。
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        historyTableBody.innerHTML = '';
+        records.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+
+          const wrongList = Array.isArray(r.wrong_questions) ? r.wrong_questions : [];
+          const wrongCount = wrongList.length;
+
+          // 格式化時間
+          const timeStr = r.submitted_at ? new Date(r.submitted_at).toLocaleString('zh-TW', { hour12: false }) : '-';
+          const durationStr = formatTime(r.duration_seconds || 0);
+
+          tr.innerHTML = `
+            <td class="px-3 py-2.5 font-bold text-slate-700">#` + r.id + `</td>
+            <td class="px-3 py-2.5 text-slate-500 whitespace-nowrap">${timeStr}</td>
+            <td class="px-3 py-2.5 font-bold text-indigo-700">${r.student_id}</td>
+            <td class="px-3 py-2.5 text-slate-800 font-sans font-medium">${r.student_name}</td>
+            <td class="px-3 py-2.5 font-sans">
+              <span class="inline-block px-2 py-0.5 rounded font-bold text-xs ` + (r.score >= 80 ? 'bg-emerald-100 text-emerald-800' : (r.score >= 60 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800')) + `">
+                ` + r.score + ` 分
+              </span>
+              <span class="text-slate-400 text-[11px] ml-1">(` + r.correct_count + `/` + r.total_questions + ` 題)</span>
+            </td>
+            <td class="px-3 py-2.5 font-mono text-slate-700">${durationStr}</td>
+            <td class="px-3 py-2.5 font-sans">
+              ` + (wrongCount === 0 
+                ? '<span class="text-emerald-600 font-semibold"><i class="fa-solid fa-check mr-1"></i>全對無錯題</span>'
+                : '<button onclick="alertWrongSummary(' + r.id + ')" class="text-rose-600 hover:text-rose-800 underline font-medium">錯 ' + wrongCount + ' 題 (點擊詳情)</button>'
+              ) + `
+            </td>
+            <td class="px-3 py-2.5 text-center whitespace-nowrap">
+              <button onclick="openExamPaperReview(` + r.id + `)" class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition shadow-sm">
+                <i class="fa-solid fa-file-signature text-xs"></i>
+                <span>🔍 檢視全卷</span>
+              </button>
+            </td>
+          `;
+
+          // 將錯題暫存供彈出檢視
+          tr.dataset.wrong = JSON.stringify(wrongList);
+          tr.id = 'row-submission-' + r.id;
+          historyTableBody.appendChild(tr);
+        });
+
+      } catch (err) {
+        historyTableBody.innerHTML = `
+          <tr>
+            <td colspan="8" class="px-4 py-8 text-center text-rose-500 font-sans">
+              <i class="fa-solid fa-circle-exclamation mr-1.5"></i>讀取歷史紀錄失敗：${err.message}
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    // 查詢 AI 蘇格拉底家教對話會話歷程
+    async function loadTutorSessions() {
+      tutorTableBody.innerHTML = `
+        <tr>
+          <td colspan="9" class="px-4 py-8 text-center text-slate-400 font-sans">
+            <i class="fa-solid fa-spinner fa-spin mr-2"></i>正在載入 AI 蘇格拉底對話歷程...
+          </td>
+        </tr>
+      `;
+
+      let url = '/api/ai/tutor/sessions';
+      if (historyFilter === 'my' && currentStudent.id) {
+        url += '?student_id=' + encodeURIComponent(currentStudent.id);
+      }
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || '查詢失敗');
+
+        const sessions = data.data || [];
+        currentLoadedTutorSessions = sessions;
+        if (tutorCountBadge) tutorCountBadge.innerText = sessions.length;
+
+        if (sessions.length === 0) {
+          tutorTableBody.innerHTML = `
+            <tr>
+              <td colspan="9" class="px-4 py-8 text-center text-slate-400 font-sans">
+                目前尚無 AI 家教對話紀錄。點擊錯題的「與 AI 蘇格拉底家教探討此題」即可展開引導對話。
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tutorTableBody.innerHTML = '';
+        sessions.forEach(s => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-violet-50/50 transition border-b border-slate-100';
+
+          const timeStr = s.created_at ? new Date(s.created_at).toLocaleString('zh-TW', { hour12: false }) : '-';
+          const isClarified = s.status === 'clarified';
+
+          tr.innerHTML = `
+            <td class="px-3 py-2.5 font-bold text-slate-700">#` + s.id + `</td>
+            <td class="px-3 py-2.5 text-slate-500 whitespace-nowrap">${timeStr}</td>
+            <td class="px-3 py-2.5 font-bold text-indigo-700">${s.student_id}</td>
+            <td class="px-3 py-2.5 text-slate-800 font-sans font-medium">${s.student_name}</td>
+            <td class="px-3 py-2.5 font-sans">
+              <span class="font-bold text-violet-700">第 ` + s.question_id + ` 題</span>
+              <span class="text-slate-400 text-[11px] block truncate max-w-[140px]">${s.question_tag}</span>
+            </td>
+            <td class="px-3 py-2.5 font-sans text-xs">
+              <span class="text-rose-600 font-bold">選【${s.student_choice}】</span>
+              <span class="text-slate-400 mx-0.5">/</span>
+              <span class="text-emerald-600 font-bold">正解【${s.correct_choice}】</span>
+            </td>
+            <td class="px-3 py-2.5 font-mono font-bold text-slate-700">${s.turn_count || 1} 輪</td>
+            <td class="px-3 py-2.5 font-sans">
+              ` + (isClarified 
+                ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800"><i class="fa-solid fa-sparkles mr-1 text-[10px]"></i>已突破</span>' 
+                : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800"><i class="fa-solid fa-spinner mr-1 text-[10px]"></i>引導中</span>'
+              ) + `
+            </td>
+            <td class="px-3 py-2.5 text-center whitespace-nowrap">
+              <button onclick="openTranscriptModal(` + s.id + `)" class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-violet-50 text-violet-700 hover:bg-violet-100 border border-violet-200 transition shadow-sm">
+                <i class="fa-solid fa-comments text-xs"></i>
+                <span>💬 逐字稿</span>
+              </button>
+            </td>
+          `;
+
+          tutorTableBody.appendChild(tr);
+        });
+
+      } catch (err) {
+        tutorTableBody.innerHTML = `
+          <tr>
+            <td colspan="9" class="px-4 py-8 text-center text-rose-500 font-sans">
+              <i class="fa-solid fa-circle-exclamation mr-1.5"></i>讀取 AI 對話歷程失敗：${err.message}
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    // 分頁切換函式
+    function switchHistoryTab(tab) {
+      currentHistoryTab = tab;
+      if (tab === 'submissions') {
+        tabSubmissionsBtn.className = 'px-4 py-2 text-xs sm:text-sm font-bold border-b-2 border-indigo-600 text-indigo-700 flex items-center space-x-1.5 transition';
+        tabTutorSessionsBtn.className = 'px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center space-x-1.5 transition';
+        submissionsTabContent.classList.remove('hidden');
+        tutorSessionsTabContent.classList.add('hidden');
+        loadHistoryRecords();
+      } else {
+        tabTutorSessionsBtn.className = 'px-4 py-2 text-xs sm:text-sm font-bold border-b-2 border-violet-600 text-violet-700 flex items-center space-x-1.5 transition';
+        tabSubmissionsBtn.className = 'px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center space-x-1.5 transition';
+        tutorSessionsTabContent.classList.remove('hidden');
+        submissionsTabContent.classList.add('hidden');
+        loadTutorSessions();
+      }
+    }
+
+    if (tabSubmissionsBtn) tabSubmissionsBtn.onclick = () => switchHistoryTab('submissions');
+    if (tabTutorSessionsBtn) tabTutorSessionsBtn.onclick = () => switchHistoryTab('tutor');
+
+    // 錯題詳細彈窗提示
+    window.alertWrongSummary = function(submissionId) {
+      const row = document.getElementById('row-submission-' + submissionId);
+      if (!row || !row.dataset.wrong) return;
+      try {
+        const list = JSON.parse(row.dataset.wrong);
+        let msg = '【記錄 #' + submissionId + ' 錯題明細】\n\n';
+        list.forEach(w => {
+          msg += '第 ' + w.sort_order + ' 題：' + w.question_text.slice(0, 35) + '...\n';
+          msg += '👉 學生所選：【' + w.selected_key + '】\n';
+          msg += '✅ 正確解答：【' + w.correct_key + '】\n';
+          msg += '💡 歸納重點：' + w.summary + '\n\n';
+        });
+        alert(msg);
+      } catch (e) {
+        alert('無法解析錯題清單');
+      }
+    };
+
+    // 師生全卷共覽彈窗 (Exam Paper Review)
+    window.openExamPaperReview = function(submissionId) {
+      const rec = currentLoadedRecords.find(r => r.id === submissionId);
+      if (!rec) {
+        alert('找不到該次作答紀錄');
+        return;
+      }
+
+      examPaperReviewModalOverlay.classList.remove('hidden');
+      reviewStudentTitle.innerText = `學生完整作答卷檢視 · ${rec.student_name} (學號：${rec.student_id})`;
+      reviewStudentSubTitle.innerText = `作答紀錄序號 #${rec.id} · 提交時間：${rec.submitted_at ? new Date(rec.submitted_at).toLocaleString('zh-TW', { hour12: false }) : '-'} · 課程：第一節 自閉症診斷與臨床表現`;
+
+      // 渲染成績摘要看板
+      const wrongList = Array.isArray(rec.wrong_questions) ? rec.wrong_questions : [];
+      const accuracy = Math.round((rec.correct_count / (rec.total_questions || 10)) * 100);
+
+      reviewScoreBar.innerHTML = `
+        <div class="p-2.5 bg-white rounded-lg border border-slate-200">
+          <span class="text-slate-500 text-[11px] block">測驗總分</span>
+          <span class="font-extrabold text-base ` + (rec.score >= 80 ? 'text-emerald-600' : (rec.score >= 60 ? 'text-amber-600' : 'text-rose-600')) + `">${rec.score} 分</span>
+        </div>
+        <div class="p-2.5 bg-white rounded-lg border border-slate-200">
+          <span class="text-slate-500 text-[11px] block">答對題數</span>
+          <span class="font-extrabold text-base text-slate-800">${rec.correct_count} / ${rec.total_questions || 10} 題</span>
+        </div>
+        <div class="p-2.5 bg-white rounded-lg border border-slate-200">
+          <span class="text-slate-500 text-[11px] block">整體正確率</span>
+          <span class="font-extrabold text-base text-indigo-600">${accuracy}%</span>
+        </div>
+        <div class="p-2.5 bg-white rounded-lg border border-slate-200">
+          <span class="text-slate-500 text-[11px] block">作答時長</span>
+          <span class="font-extrabold text-base text-slate-800 font-mono">${formatTimeDisplayZh(rec.duration_seconds || 0)}</span>
+        </div>
+      `;
+
+      // 渲染 10 題完整作答清單
+      reviewQuestionsContainer.innerHTML = '';
+      questions.forEach((q, idx) => {
+        const order = idx + 1;
+        const wrongItem = wrongList.find(w => w.sort_order === order);
+        const isCorrect = !wrongItem;
+        const studentChoice = isCorrect ? q.correct : wrongItem.selected_key;
+
+        const card = document.createElement('div');
+        card.className = 'p-4 rounded-xl border ' + (isCorrect ? 'bg-slate-50/60 border-slate-200' : 'bg-rose-50/40 border-rose-200') + ' space-y-2.5';
+
+        let optionsHtml = '';
+        q.options.forEach(opt => {
+          const isThisCorrect = (opt.key === q.correct);
+          const isStudentPicked = (opt.key === studentChoice);
+
+          let optBoxStyle = 'p-2.5 rounded-lg border text-xs leading-relaxed flex items-start space-x-2 ';
+          let optBadge = '';
+
+          if (isThisCorrect && isStudentPicked) {
+            optBoxStyle += 'bg-emerald-100/80 border-emerald-400 text-emerald-950 font-semibold';
+            optBadge = '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white flex-shrink-0">學生選擇 ＆ 正解</span>';
+          } else if (isStudentPicked) {
+            optBoxStyle += 'bg-rose-100/80 border-rose-300 text-rose-950 font-semibold';
+            optBadge = '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-600 text-white flex-shrink-0">學生所選</span>';
+          } else if (isThisCorrect) {
+            optBoxStyle += 'bg-emerald-50 border-emerald-300 text-emerald-900';
+            optBadge = '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-200 text-emerald-800 flex-shrink-0">標準解答</span>';
+          } else {
+            optBoxStyle += 'bg-white border-slate-200 text-slate-700';
+            optBadge = '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 flex-shrink-0">' + opt.key + '</span>';
+          }
+
+          optionsHtml += `
+            <div class="${optBoxStyle}">
+              ${optBadge}
+              <div class="flex-1">
+                <span class="font-medium">${opt.text}</span>
+                <p class="text-slate-500 text-[11px] mt-0.5">${opt.explanation}</p>
+              </div>
+            </div>
+          `;
+        });
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="font-bold text-xs px-2 py-0.5 rounded ` + (isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800') + `">
+                第 ${order} 題
+              </span>
+              <span class="text-xs text-slate-500 font-medium">${q.source}</span>
+            </div>
+            <div>
+              ` + (isCorrect 
+                ? '<span class="text-xs font-bold text-emerald-600 flex items-center"><i class="fa-solid fa-circle-check mr-1"></i>答對 (選 ' + studentChoice + ')</span>' 
+                : '<span class="text-xs font-bold text-rose-600 flex items-center"><i class="fa-solid fa-circle-xmark mr-1"></i>答錯 (選 ' + studentChoice + '，正解 ' + q.correct + ')</span>'
+              ) + `
+            </div>
+          </div>
+          <p class="text-xs font-semibold text-slate-900 leading-relaxed">${q.text}</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
+            ${optionsHtml}
+          </div>
+          <div class="p-2.5 bg-white rounded-lg border border-slate-200 text-xs text-slate-700">
+            <strong class="font-bold text-slate-900"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i>核心觀念歸納：</strong>
+            <span>${q.summary}</span>
+          </div>
+          ` + (!isCorrect ? `
+          <div class="pt-1 flex justify-end">
+            <button onclick="examPaperReviewModalOverlay.classList.add('hidden'); historyModalOverlay.classList.add('hidden'); openAiTutorForQuestion(${idx});" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-sm transition">
+              <i class="fa-solid fa-robot mr-1"></i>
+              <span>與 AI 蘇格拉底探討本題</span>
+              <i class="fa-solid fa-arrow-right text-[10px] ml-1"></i>
+            </button>
+          </div>
+          ` : '') + `
+        `;
+
+        reviewQuestionsContainer.appendChild(card);
+      });
+    };
+
+    if (closeExamPaperReviewModal) closeExamPaperReviewModal.onclick = () => examPaperReviewModalOverlay.classList.add('hidden');
+    if (confirmCloseExamPaperReview) confirmCloseExamPaperReview.onclick = () => examPaperReviewModalOverlay.classList.add('hidden');
+
+    // AI 對話逐字稿檢視彈窗 (Session Transcript)
+    window.openTranscriptModal = async function(sessionId) {
+      sessionTranscriptModalOverlay.classList.remove('hidden');
+      transcriptMessagesContainer.innerHTML = `
+        <div class="p-8 text-center text-slate-400">
+          <i class="fa-solid fa-spinner fa-spin mr-2"></i>正在載入 AI 蘇格拉底對話逐字稿...
+        </div>
+      `;
+
+      const session = currentLoadedTutorSessions.find(s => s.id === sessionId) || {};
+      transcriptModalTitle.innerText = `AI 蘇格拉底家教對話逐字稿 · 會話 #${sessionId}`;
+      transcriptModalSubTitle.innerText = `學生：${session.student_name || '同學'} (${session.student_id || '未填學號'}) · 討論題號：第 ${session.question_id || 1} 題`;
+
+      if (transcriptQuestionContext) {
+        transcriptQuestionContext.innerHTML = `
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-bold text-violet-900">第 ${session.question_id || 1} 題【${session.question_tag || '自閉症核心觀念'}】</span>
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded ${session.status === 'clarified' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+              ${session.status === 'clarified' ? '🎉 觀念已突破' : '引導進行中'}
+            </span>
+          </div>
+          <p class="text-slate-800 font-medium leading-relaxed">${session.question_text || ''}</p>
+          <div class="mt-1.5 flex items-center space-x-3 text-[11px]">
+            <span class="text-rose-600 font-bold">初次作答選項：【${session.student_choice || ''}】</span>
+            <span class="text-emerald-700 font-bold">標準正確解答：【${session.correct_choice || ''}】</span>
+            <span class="text-slate-400 font-mono">${session.created_at ? new Date(session.created_at).toLocaleString('zh-TW') : ''}</span>
+          </div>
+        `;
+      }
+
+      try {
+        const res = await fetch(`/api/ai/tutor/messages?session_id=${sessionId}`);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || '載入訊息失敗');
+
+        const msgs = data.data || [];
+        transcriptMessagesContainer.innerHTML = '';
+
+        if (msgs.length === 0) {
+          transcriptMessagesContainer.innerHTML = `
+            <div class="p-6 text-center text-slate-400">尚無對話訊息紀錄。</div>
+          `;
+          return;
+        }
+
+        msgs.forEach(m => {
+          const isUser = (m.sender === 'student' || m.sender === 'user');
+          const row = document.createElement('div');
+          row.className = 'flex items-start space-x-2.5 ' + (isUser ? 'flex-row-reverse space-x-reverse' : '');
+
+          const avatar = document.createElement('div');
+          avatar.className = 'w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shadow-sm flex-shrink-0 ' + 
+            (isUser ? 'bg-indigo-600 text-white' : 'bg-gradient-to-br from-violet-600 to-purple-700 text-white');
+          avatar.innerHTML = isUser ? '<i class="fa-solid fa-user text-[11px]"></i>' : '🤖';
+
+          const bubble = document.createElement('div');
+          bubble.className = 'max-w-[85%] rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed shadow-sm ' + 
+            (isUser 
+              ? 'bg-indigo-600 text-white rounded-tr-none' 
+              : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none');
+          
+          const time = m.created_at ? new Date(m.created_at).toLocaleTimeString('zh-TW', { hour12: false }) : '';
+          bubble.innerHTML = `
+            <div>${m.content.replace(/\n/g, '<br>')}</div>
+            <div class="text-[10px] mt-1 text-right ` + (isUser ? 'text-indigo-200' : 'text-slate-400') + ` font-mono">${time}</div>
+          `;
+
+          row.appendChild(avatar);
+          row.appendChild(bubble);
+          transcriptMessagesContainer.appendChild(row);
+        });
+
+        if (session.status === 'clarified') {
+          const breakthroughDiv = document.createElement('div');
+          breakthroughDiv.className = 'p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-950 flex items-start space-x-2.5';
+          breakthroughDiv.innerHTML = `
+            <span class="text-xl">🌟</span>
+            <div>
+              <strong class="font-bold block text-emerald-900">觀念突破紀錄點 (Breakthrough Achieved)</strong>
+              <p class="text-emerald-800 text-[11px] mt-0.5 leading-relaxed">學生已成功回答出關鍵概念與思維盲點，AI 蘇格拉底家教已給予融會貫通肯定。</p>
+            </div>
+          `;
+          transcriptMessagesContainer.appendChild(breakthroughDiv);
+        }
+
+      } catch (err) {
+        transcriptMessagesContainer.innerHTML = `
+          <div class="p-6 text-center text-rose-500">
+            <i class="fa-solid fa-circle-exclamation mr-1.5"></i>讀取逐字稿失敗：${err.message}
+          </div>
+        `;
+      }
+    };
+
+    if (closeTranscriptModal) closeTranscriptModal.onclick = () => sessionTranscriptModalOverlay.classList.add('hidden');
+    if (confirmCloseTranscriptModal) confirmCloseTranscriptModal.onclick = () => sessionTranscriptModalOverlay.classList.add('hidden');
+
+    function openHistoryModal() {
+      historyModalOverlay.classList.remove('hidden');
+      if (currentHistoryTab === 'tutor') {
+        loadTutorSessions();
+      } else {
+        loadHistoryRecords();
+      }
+    }
+
+    function closeHistoryModalView() {
+      historyModalOverlay.classList.add('hidden');
+    }
+
+    historyRecordsBtn.onclick = openHistoryModal;
+    viewHistoryFromSummaryBtn.onclick = openHistoryModal;
+    closeHistoryModal.onclick = closeHistoryModalView;
+    confirmCloseHistoryModal.onclick = closeHistoryModalView;
+    refreshHistoryBtn.onclick = () => {
+      if (currentHistoryTab === 'tutor') {
+        loadTutorSessions();
+      } else {
+        loadHistoryRecords();
+      }
+    };
+
+    // 匯出測驗總表 CSV
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+    if (exportCsvBtn) {
+      exportCsvBtn.onclick = () => {
+        if (!currentLoadedRecords || currentLoadedRecords.length === 0) {
+          alert('目前無作答紀錄可供匯出！');
+          return;
+        }
+
+        let csv = '\uFEFF記錄序號,提交時間,課程章節,學號,姓名,測驗分數,答對題數,總題數,正確率,作答時長(秒),作答時長,錯題數,錯題題號列表\n';
+        currentLoadedRecords.forEach(r => {
+          const wrongList = Array.isArray(r.wrong_questions) ? r.wrong_questions : [];
+          const wrongOrders = wrongList.length > 0 ? wrongList.map(w => '第' + w.sort_order + '題').join('; ') : '無(全對)';
+          const timeStr = r.submitted_at ? new Date(r.submitted_at).toLocaleString('zh-TW', { hour12: false }) : '';
+          const accuracy = Math.round((r.correct_count / (r.total_questions || 10)) * 100) + '%';
+          
+          const row = [
+            r.id,
+            `"${timeStr}"`,
+            `"第一節 自閉症兒童的診斷以及臨床表現"`,
+            `"${r.student_id}"`,
+            `"${r.student_name}"`,
+            r.score,
+            r.correct_count,
+            r.total_questions || 10,
+            accuracy,
+            r.duration_seconds,
+            `"${formatTimeDisplayZh(r.duration_seconds || 0)}"`,
+            wrongList.length,
+            `"${wrongOrders}"`
+          ];
+          csv += row.join(',') + '\n';
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `自閉症教學_學生作答成績報表_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(downloadUrl);
+      };
+    }
+
+    // 匯出 AI 蘇格拉底對話歷程 CSV
+    if (exportTutorCsvBtn) {
+      exportTutorCsvBtn.onclick = async () => {
+        try {
+          const res = await fetch('/api/ai/tutor/all-messages');
+          const data = await res.json();
+          if (!data.success) throw new Error(data.error || '取得對話歷程失敗');
+
+          const messages = data.data || [];
+          if (messages.length === 0) {
+            alert('目前尚無 AI 家教對話訊息可供匯出！');
+            return;
+          }
+
+          let csv = '\uFEFF訊息ID,會話ID,發送時間,學號,姓名,討論題號,概念主題,初選選項,正確答案,會話狀態,發話者角色,發言內容\n';
+          messages.forEach(m => {
+            const timeStr = m.created_at ? new Date(m.created_at).toLocaleString('zh-TW', { hour12: false }) : '';
+            const roleName = m.sender === 'student' ? '學生' : (m.sender === 'assistant' ? 'AI蘇格拉底家教' : m.sender);
+            const cleanContent = (m.content || '').replace(/"/g, '""');
+
+            const row = [
+              m.message_id,
+              m.session_id,
+              `"${timeStr}"`,
+              `"${m.student_id || ''}"`,
+              `"${m.student_name || ''}"`,
+              `"第 ${m.question_id || 1} 題"`,
+              `"${m.question_tag || ''}"`,
+              `"${m.student_choice || ''}"`,
+              `"${m.correct_choice || ''}"`,
+              `"${m.session_status === 'clarified' ? '已突破' : '引導中'}"`,
+              `"${roleName}"`,
+              `"${cleanContent}"`
+            ];
+            csv += row.join(',') + '\n';
+          });
+
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const downloadUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = downloadUrl;
+          a.download = `自閉症教學_AI蘇格拉底對話歷程_${new Date().toISOString().slice(0, 10)}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(downloadUrl);
+        } catch (err) {
+          alert('匯出 AI 對話歷程失敗：' + err.message);
+        }
+      };
+    }
+
+    filterMyRecordsBtn.onclick = () => {
+      historyFilter = 'my';
+      filterMyRecordsBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 shadow-sm';
+      filterAllRecordsBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300';
+      if (currentHistoryTab === 'tutor') {
+        loadTutorSessions();
+      } else {
+        loadHistoryRecords();
+      }
+    };
+
+    filterAllRecordsBtn.onclick = () => {
+      historyFilter = 'all';
+      filterAllRecordsBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 shadow-sm';
+      filterMyRecordsBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300';
+      if (currentHistoryTab === 'tutor') {
+        loadTutorSessions();
+      } else {
+        loadHistoryRecords();
+      }
+    };
+
+    // 側邊欄與 D1 資訊彈窗
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').onclick = () => {
+      sidebar.classList.remove('-translate-x-full');
+    };
+    document.getElementById('closeSidebar').onclick = () => {
+      sidebar.classList.add('-translate-x-full');
+    };
+
+    const d1ModalOverlay = document.getElementById('d1ModalOverlay');
+    document.getElementById('d1Badge').onclick = (e) => {
+      e.preventDefault();
+      d1ModalOverlay.classList.remove('hidden');
+    };
+    document.getElementById('closeD1Modal').onclick = () => {
+      d1ModalOverlay.classList.add('hidden');
+    };
+    document.getElementById('confirmCloseD1Modal').onclick = () => {
+      d1ModalOverlay.classList.add('hidden');
+    };
+
+    // 12. AI 蘇格拉底家教 (方案三：錯題破障微對話)
+    function appendTutorBubble(role, contentHtml, isSystemAlert = false) {
+      const bubbleWrapper = document.createElement('div');
+      
+      if (isSystemAlert) {
+        bubbleWrapper.className = 'p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-950 flex items-start space-x-2.5';
+        bubbleWrapper.innerHTML = `
+          <span class="text-xl">🌟</span>
+          <div>
+            <strong class="font-bold block text-emerald-900">恭喜觀念成功破障！已融會貫通！</strong>
+            <p class="text-emerald-800 text-[11px] mt-0.5 leading-relaxed">${contentHtml}</p>
+          </div>
+        `;
+        tutorChatMessages.appendChild(bubbleWrapper);
+        tutorChatMessages.scrollTop = tutorChatMessages.scrollHeight;
+        return;
+      }
+
+      const isUser = (role === 'student' || role === 'user');
+      bubbleWrapper.className = 'flex items-start space-x-2.5 ' + (isUser ? 'flex-row-reverse space-x-reverse' : '');
+
+      const avatar = document.createElement('div');
+      avatar.className = 'w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shadow-sm flex-shrink-0 ' + 
+        (isUser ? 'bg-indigo-600 text-white' : 'bg-gradient-to-br from-violet-600 to-purple-700 text-white');
+      avatar.innerHTML = isUser ? '<i class="fa-solid fa-user text-[11px]"></i>' : '🤖';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'max-w-[85%] rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed shadow-sm ' + 
+        (isUser 
+          ? 'bg-indigo-600 text-white rounded-tr-none' 
+          : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none');
+      
+      bubble.innerHTML = contentHtml.replace(/\n/g, '<br>');
+
+      bubbleWrapper.appendChild(avatar);
+      bubbleWrapper.appendChild(bubble);
+      tutorChatMessages.appendChild(bubbleWrapper);
+      tutorChatMessages.scrollTop = tutorChatMessages.scrollHeight;
+    }
+
+    async function openAiTutorForQuestion(idx) {
+      if (idx !== undefined && idx !== null) {
+        currentIndex = idx;
+        renderQuestion();
+      }
+
+      const q = questions[currentIndex];
+      const answered = userAnswers[currentIndex];
+
+      if (!answered) {
+        alert('請先點選本題其中一個選項作答，讓 AI 家教能針對您的作答思路進行專屬引導！');
+        return;
+      }
+
+      aiTutorOverlay.classList.remove('hidden');
+      tutorQuestionOrderTag.innerText = '第 ' + (currentIndex + 1) + ' 題';
+      tutorQuestionSummaryText.innerText = q.text;
+      
+      const studentLabel = currentStudent.name 
+        ? `${currentStudent.name} (${currentStudent.id || '未填學號'})`
+        : '訪客同學';
+      tutorStudentTag.innerText = studentLabel;
+
+      // 填入完整題幹與題型標籤
+      if (tutorSourceTag) tutorSourceTag.innerText = q.source || '核心概念檢測';
+      if (tutorFullQuestionText) tutorFullQuestionText.innerText = q.text;
+
+      // 渲染四個選項完整對照卡片
+      if (tutorOptionsList) {
+        tutorOptionsList.innerHTML = '';
+        q.options.forEach(opt => {
+          const isUserChoice = (answered && answered.selectedKey === opt.key);
+          const isCorrectChoice = (opt.key === q.correct);
+
+          const card = document.createElement('div');
+          let cardStyle = 'p-2.5 rounded-xl border text-xs leading-relaxed transition flex flex-col justify-between ';
+          let badgeHtml = '';
+
+          if (isUserChoice && isCorrectChoice) {
+            cardStyle += 'bg-emerald-50/90 border-emerald-400 ring-1 ring-emerald-400/40 text-emerald-950';
+            badgeHtml = '<span class="bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm"><i class="fa-solid fa-check mr-1"></i>您的選擇 ＆ 正解</span>';
+          } else if (isUserChoice) {
+            cardStyle += 'bg-rose-50/90 border-rose-300 ring-1 ring-rose-400/30 text-rose-950';
+            badgeHtml = '<span class="bg-rose-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm"><i class="fa-solid fa-user-check mr-1"></i>您剛才選的</span>';
+          } else if (isCorrectChoice) {
+            cardStyle += 'bg-emerald-50/80 border-emerald-300 text-emerald-900';
+            badgeHtml = '<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded"><i class="fa-solid fa-key mr-1"></i>標準解答</span>';
+          } else {
+            cardStyle += 'bg-slate-50 border-slate-200 text-slate-700';
+            badgeHtml = '<span class="bg-slate-200 text-slate-700 text-[10px] font-bold px-1.5 py-0.5 rounded">' + opt.key + '</span>';
+          }
+
+          card.className = cardStyle;
+          card.innerHTML = `
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-bold text-xs uppercase tracking-wider text-slate-800">${opt.key} 選項</span>
+              ${badgeHtml}
+            </div>
+            <p class="font-medium text-[11px] leading-normal text-slate-700">${opt.text}</p>
+          `;
+          tutorOptionsList.appendChild(card);
+        });
+
+        // 確保題目選項面板預設為展開狀態
+        if (tutorQuestionContextPanel) {
+          tutorQuestionContextPanel.classList.remove('hidden');
+          if (toggleQuestionContextText) toggleQuestionContextText.innerText = '收合選項';
+          if (toggleQuestionContextIcon) toggleQuestionContextIcon.className = 'fa-solid fa-chevron-up text-[10px] transition-transform duration-200';
+        }
+      }
+
+      tutorStatusBadge.className = 'text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-400 text-amber-950 uppercase tracking-wider';
+      tutorStatusBadge.innerText = '引導中';
+      tutorChatMessages.innerHTML = '';
+
+      // 載入指示
+      const loadingDiv = document.createElement('div');
+      loadingDiv.id = 'tutorInitLoading';
+      loadingDiv.className = 'flex items-center space-x-2 text-xs text-violet-700 bg-violet-50/90 border border-violet-200 p-3 rounded-xl';
+      loadingDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-violet-600"></i><span>AI 蘇格拉底家教正在審閱您的答題盲點，準備引導問題...</span>';
+      tutorChatMessages.appendChild(loadingDiv);
+
+      const userOpt = q.options.find(o => o.key === answered.selectedKey) || { text: '' };
+      const correctOpt = q.options.find(o => o.key === q.correct) || { text: '' };
+
+      try {
+        isTutorLoading = true;
+        tutorSendBtn.disabled = true;
+        tutorChatInput.disabled = true;
+
+        const res = await fetch('/api/ai/tutor/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question_id: q.id || (currentIndex + 1),
+            question_sort_order: currentIndex + 1,
+            question_tag: q.source || '自閉症核心觀念',
+            question_text: q.text,
+            selected_key: answered.selectedKey,
+            selected_text: userOpt.text,
+            student_choice: answered.selectedKey,
+            student_choice_text: userOpt.text,
+            correct_key: q.correct,
+            correct_text: correctOpt.text,
+            correct_choice: q.correct,
+            correct_choice_text: correctOpt.text,
+            summary: q.summary || '',
+            student_id: (currentStudent.id && currentStudent.id.trim()) ? currentStudent.id.trim() : 'GUEST',
+            student_name: (currentStudent.name && currentStudent.name.trim()) ? currentStudent.name.trim() : '同學'
+          })
+        });
+
+        const data = await res.json();
+        if (loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
+
+        if (!data.success) throw new Error(data.error || '啟動家教失敗');
+
+        currentTutorSessionId = data.session_id;
+        const tutorGreeting = data.greeting_message || data.message || data.reply || '同學你好！我們一起來探討這道題目。';
+        appendTutorBubble('assistant', tutorGreeting);
+      } catch (err) {
+        if (loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
+        appendTutorBubble('assistant', '⚠️ 連線至 AI 家教伺服器時發生狀況：' + err.message + '。請確認 API Key 是否設定正確。');
+      } finally {
+        isTutorLoading = false;
+        tutorSendBtn.disabled = false;
+        tutorChatInput.disabled = false;
+        tutorChatInput.focus();
+      }
+    }
+
+    async function sendTutorChatMessage() {
+      const msg = tutorChatInput.value.trim();
+      if (!msg || !currentTutorSessionId || isTutorLoading) return;
+
+      tutorChatInput.value = '';
+      appendTutorBubble('student', msg);
+
+      // 顯示輸入中指示器
+      const typingDiv = document.createElement('div');
+      typingDiv.id = 'tutorTypingIndicator';
+      typingDiv.className = 'flex items-center space-x-2 text-xs text-slate-500 bg-white border border-slate-200 px-3 py-2 rounded-2xl w-fit shadow-sm';
+      typingDiv.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-violet-600"></i><span>AI 家教正在組織回饋與反思詰問...</span>';
+      tutorChatMessages.appendChild(typingDiv);
+      tutorChatMessages.scrollTop = tutorChatMessages.scrollHeight;
+
+      try {
+        isTutorLoading = true;
+        tutorSendBtn.disabled = true;
+
+        const res = await fetch('/api/ai/tutor/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: currentTutorSessionId,
+            student_message: msg
+          })
+        });
+
+        const data = await res.json();
+        if (typingDiv.parentNode) typingDiv.parentNode.removeChild(typingDiv);
+
+        if (!data.success) throw new Error(data.error || '發送失敗');
+
+        const tutorReply = data.reply_message || data.reply || data.message || '';
+        appendTutorBubble('assistant', tutorReply);
+
+        if (data.is_clarified) {
+          tutorStatusBadge.className = 'text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-400 text-emerald-950 uppercase tracking-wider';
+          tutorStatusBadge.innerText = '🎉 觀念已突破！';
+          appendTutorBubble('system', '您已順利找出並釐清核心盲點，太棒了！本題突破歷程已同步保存至 D1 資料庫。', true);
+        }
+      } catch (err) {
+        if (typingDiv.parentNode) typingDiv.parentNode.removeChild(typingDiv);
+        appendTutorBubble('assistant', '⚠️ 發送訊息失敗：' + err.message);
+      } finally {
+        isTutorLoading = false;
+        tutorSendBtn.disabled = false;
+        tutorChatInput.focus();
+      }
+    }
+
+    // 關閉 AI 家教彈窗
+    function closeAiTutorModalView() {
+      aiTutorOverlay.classList.add('hidden');
+    }
+
+    openAiTutorBtn.onclick = () => openAiTutorForQuestion(currentIndex);
+    closeAiTutorModal.onclick = closeAiTutorModalView;
+
+    if (toggleQuestionContextBtn) {
+      toggleQuestionContextBtn.onclick = () => {
+        const isHidden = tutorQuestionContextPanel.classList.contains('hidden');
+        if (isHidden) {
+          tutorQuestionContextPanel.classList.remove('hidden');
+          if (toggleQuestionContextText) toggleQuestionContextText.innerText = '收合選項';
+          if (toggleQuestionContextIcon) toggleQuestionContextIcon.className = 'fa-solid fa-chevron-up text-[10px] transition-transform duration-200';
+        } else {
+          tutorQuestionContextPanel.classList.add('hidden');
+          if (toggleQuestionContextText) toggleQuestionContextText.innerText = '查看題目與選項';
+          if (toggleQuestionContextIcon) toggleQuestionContextIcon.className = 'fa-solid fa-chevron-down text-[10px] transition-transform duration-200';
+        }
+      };
+    }
+
+    tutorChatForm.onsubmit = (e) => {
+      e.preventDefault();
+      sendTutorChatMessage();
+    };
+
+    // 點擊快捷提問 Chips
+    if (tutorQuickChips) {
+      tutorQuickChips.querySelectorAll('.quick-chip').forEach(btn => {
+        btn.onclick = () => {
+          tutorChatInput.value = btn.innerText.trim();
+          tutorChatInput.focus();
+        };
+      });
+    }
+
+    // 從錯題清單中點擊呼叫
+    window.startAiTutorForQuestionOrder = function(order) {
+      openAiTutorForQuestion(order - 1);
+    };
+
+    // 鍵盤左右切換題目
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'ArrowLeft' && currentIndex > 0) {
+        currentIndex--;
+        renderQuestion();
+      } else if (e.key === 'ArrowRight' && currentIndex < questions.length - 1) {
+        currentIndex++;
+        renderQuestion();
+      }
+    });
+
+    // 啟動初始化
+    updateStudentUI();
+    timerDisplayEl.innerText = formatTime(durationSeconds);
+    if (Object.keys(userAnswers).length < questions.length) {
+      startTimer();
+    }
+    renderQuestion();
+  </script>
+</body>
+</html>
