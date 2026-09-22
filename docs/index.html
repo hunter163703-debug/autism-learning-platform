@@ -28,6 +28,16 @@
               600: '#0284c7',
               700: '#0369a1',
               900: '#0c4a6e',
+            },
+            hanen: {
+              50: '#fff7ed',
+              100: '#ffedd5',
+              200: '#fed7aa',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c',
+              800: '#9a3412',
+              900: '#7c2d12',
             }
           }
         }
@@ -138,15 +148,15 @@
           <p class="text-xs text-slate-600 mt-1 line-clamp-2">精選 10 題核心觀念檢測，含 DSM-IV 與 DSM-5 診斷要點與詳細選項逐項解析。</p>
         </div>
 
-        <!-- 未來章節 預留 -->
-        <div class="p-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/70 text-slate-400 cursor-not-allowed">
+        <!-- 第二節：已解鎖 Hanen 方案與學習單 -->
+        <a href="session2.html" class="block p-3 rounded-xl border border-hanen-200 bg-orange-50/60 hover:bg-orange-100/70 transition group shadow-sm">
           <div class="flex items-center justify-between mb-1">
-            <span class="text-[11px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded">章節單元</span>
-            <i class="fa-solid fa-lock text-xs text-slate-300"></i>
+            <span class="text-[11px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded">第二節 · 實證方案與學習單</span>
+            <i class="fa-solid fa-arrow-right text-xs text-orange-500 group-hover:translate-x-0.5 transition"></i>
           </div>
-          <h4 class="font-semibold text-xs text-slate-500">第二節 自閉症兒童的語言與溝通特徵</h4>
-          <p class="text-[11px] text-slate-400 mt-0.5">語用缺損、共同注意力（Joint Attention）與心智理論（ToM）互動教學。</p>
-        </div>
+          <h4 class="font-bold text-xs text-slate-900 group-hover:text-orange-700 transition">跟隨孩子的引導 (Follow Your Child's Lead)</h4>
+          <p class="text-[11px] text-slate-600 mt-0.5">Hanen It Takes Two to Talk®、OWL 技巧、溝通風格與父母角色線上學習單。</p>
+        </a>
 
         <div class="p-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/70 text-slate-400 cursor-not-allowed">
           <div class="flex items-center justify-between mb-1">
@@ -1913,7 +1923,7 @@
       }
     };
 
-    // 匯出測驗總表 CSV
+    // 匯出測驗總表 CSV (依學號去重，每位學生僅匯出最新一筆，絕不重複)
     const exportCsvBtn = document.getElementById('exportCsvBtn');
     if (exportCsvBtn) {
       exportCsvBtn.onclick = () => {
@@ -1922,25 +1932,38 @@
           return;
         }
 
-        let csv = '\uFEFF記錄序號,提交時間,課程章節,學號,姓名,測驗分數,答對題數,總題數,正確率,作答時長(秒),作答時長,錯題數,錯題題號列表\n';
+        // 依學號分組，每位學生僅保留最新的一次測驗紀錄 (解決重複 3 筆問題)
+        const studentRecordMap = new Map();
         currentLoadedRecords.forEach(r => {
-          const wrongList = Array.isArray(r.wrong_questions) ? r.wrong_questions : [];
+          const sid = (r.student_id || '').trim();
+          if (!sid) return;
+          if (!studentRecordMap.has(sid)) {
+            studentRecordMap.set(sid, []);
+          }
+          studentRecordMap.get(sid).push(r);
+        });
+
+        let csv = '\uFEFF記錄序號,學號,姓名,最新測驗分數,答對題數,總題數,正確率,累積作答次數,最新提交時間,作答時長,錯題數,錯題題號列表\n';
+        let rowIdx = 1;
+
+        studentRecordMap.forEach((attempts, sid) => {
+          const latest = attempts[0]; // 最新一筆紀錄
+          const wrongList = Array.isArray(latest.wrong_questions) ? latest.wrong_questions : [];
           const wrongOrders = wrongList.length > 0 ? wrongList.map(w => '第' + w.sort_order + '題').join('; ') : '無(全對)';
-          const timeStr = r.submitted_at ? new Date(r.submitted_at).toLocaleString('zh-TW', { hour12: false }) : '';
-          const accuracy = Math.round((r.correct_count / (r.total_questions || 10)) * 100) + '%';
-          
+          const timeStr = latest.submitted_at ? new Date(latest.submitted_at).toLocaleString('zh-TW', { hour12: false }) : '';
+          const accuracy = Math.round((latest.correct_count / (latest.total_questions || 10)) * 100) + '%';
+
           const row = [
-            r.id,
-            `"${timeStr}"`,
-            `"第一節 自閉症兒童的診斷以及臨床表現"`,
-            `"${r.student_id}"`,
-            `"${r.student_name}"`,
-            r.score,
-            r.correct_count,
-            r.total_questions || 10,
+            rowIdx++,
+            `"${latest.student_id}"`,
+            `"${latest.student_name}"`,
+            latest.score,
+            latest.correct_count,
+            latest.total_questions || 10,
             accuracy,
-            r.duration_seconds,
-            `"${formatTimeDisplayZh(r.duration_seconds || 0)}"`,
+            `"共測驗 ${attempts.length} 次"`,
+            `"${timeStr}"`,
+            `"${formatTimeDisplayZh(latest.duration_seconds || 0)}"`,
             wrongList.length,
             `"${wrongOrders}"`
           ];
@@ -1951,7 +1974,7 @@
         const downloadUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = downloadUrl;
-        a.download = `自閉症教學_學生作答成績報表_${new Date().toISOString().slice(0, 10)}.csv`;
+        a.download = `自閉症國考測驗_全班學生最新成績總表(一人一筆)_${new Date().toISOString().slice(0, 10)}.csv`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

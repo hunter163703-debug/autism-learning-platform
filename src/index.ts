@@ -435,6 +435,114 @@ export default {
       }
     }
 
+    // 2.5 審閱學習單問答（第二節最後一題：溝通風格與父母角色反思）
+    if (url.pathname === '/api/ai/review-worksheet' && request.method === 'POST') {
+      try {
+        const body = await request.json() as any;
+        const { student_name = '同學', student_id = '', answer_text = '' } = body;
+
+        if (!answer_text || !answer_text.trim()) {
+          return json({ success: false, error: '請先輸入您的作答內容再請求 AI 助教回饋！' }, { status: 400 });
+        }
+
+        const reviewPrompt = `學生姓名：${student_name} (學號: ${student_id})
+學習單任務題：
+【想一想：面對不同溝通風格的孩子，父母/老師的角色應該是何者才適當？為什麼？】
+
+【Hanen It Takes Two to Talk 官方評分規準與參考答案 (總分16分)】：
+一、評分向度：
+1. 風格辨識 (4分)：四種風格 (社交型 Sociable、不情願型 Reluctant、被動型 Passive、自主型 Own Agenda) 及其判準 (主動開啟/回應他人頻率)。
+2. 角色配對 (6分)：四種風格皆以【會意者 (Tuned-In)】為共同目標，各風格適當與風險角色如下：
+   - 社交型：適當＝會意型 (收斂、別搶著表演、把舞台還給孩子)；風險＝娛樂型。
+   - 不情願型：適當＝幫助型＋會意型 (製造機會＋OWL＋等待，不考不催)；風險＝考試型、指導型。
+   - 被動型：適當＝娛樂型＋會意型＋參與遊戲 (主動搭橋、逗引動機、抓微弱信號、給足時間不代勞)；風險＝幫助型 (馬上代勞)、奔波型 (直換活動)。
+   - 自主型：適當＝旁觀型＋會意型 (順勢加入、以他的方式玩、模仿解讀)；風險＝奔波型 (過多介入)、指導型 (硬要拉回)。
+3. 理念論證 (4分)：連結 OWL (觀察等待聆聽)、跟隨孩子引導、互動/輪替優先、回應性。
+4. 具體應用與表達 (2分)：提出可操作做法 (等待約10秒、模仿解讀、平衡輪替)。
+
+二、等級規準：
+- A級 (14-16分)：指出會意者為共同目標，清楚辨析四種風格的適當應對與風險角色，連結OWL與輪替，舉例具體。
+- B級 (11-13分)：指出會意者方向，但風險角色或理念論證較淺。
+- C級 (7-10分)：多數配對錯誤或未提及會意者，僅複述名詞。
+- D級 (0-6分)：未配對、全錯或答非所問。
+
+學生的回答內容如下：
+"""
+${answer_text.trim()}
+"""
+
+任務：
+請扮演資深語言治療臨床實習督導/AI教學助教，以繁體中文給予專業回饋：
+1. 【等級與分數評定】：明確給出等級 (A/B/C/D) 與得分 (例如：得分：15 / 16 分)。
+2. 【向度診斷點評】：針對學生的回答，對照上述四大向度精準剖析其亮點與臨床盲點 (特別檢驗是否落入非會意型的盲區)。
+3. 【臨床指導與總結】：給予溫暖、具啟發性的臨床回饋。`;
+
+        const reply = await callLLM(env, [
+          { role: 'system', content: '你是一位專業、溫暖且具啟發性的語言病理學與自閉症早療臨床督導助教，使用繁體中文回答。' },
+          { role: 'user', content: reviewPrompt }
+        ]);
+
+        return json({
+          success: true,
+          feedback: reply
+        });
+      } catch (err: any) {
+        console.error('Worksheet Review Error:', err);
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 2.6 審閱學習單【貳之3：0~2歲創造主動溝通機會之3個具體例子】評分與回饋
+    if (url.pathname === '/api/ai/review-examples' && request.method === 'POST') {
+      try {
+        const body = await request.json() as any;
+        const { student_name = '同學', student_id = '', ex1 = '', ex2 = '', ex3 = '' } = body;
+
+        if (!ex1.trim() && !ex2.trim() && !ex3.trim()) {
+          return json({ success: false, error: '請至少填寫一個具體生活例子後再請求 AI 助教評分！' }, { status: 400 });
+        }
+
+        const scoringPrompt = `學生姓名：${student_name} (學號: ${student_id})
+學習單任務題：
+【你還能想到哪些方法，讓孩子「有機會」主動表達？請寫下 3 個 0~2 歲孩童適合的具體例子。滿分 16 分】
+
+【Hanen It Takes Two to Talk 官方評分規準 (五大向度優劣兩級評分法)】：
+判分核心：大人的角色是「製造機會 ＋ 然後等待 ＋ 回應」，絕非「下指令、問問題、要孩子說出正確答案」。
+1. 策略對應：放高拿不到但看得到、只給一點點、給選擇、暫停熟悉活動、改變活動、故意出錯等技巧。
+2. 年齡適切：符合 0~2 歲日常作息，孩子用眼神/手勢/聲音即可回應。
+3. 具體性：人、事、時、地、物清楚 (如點心密封罐、穿襪套一半、洗澡鴨鴨不見)。
+4. 等待與回應：★核心關鍵！明確寫出「…然後等待」(安靜、身體前傾、期待看著孩子約10秒)，並立即回應孩子微小信號。
+5. 給分原則 (每例約 5.33 分)：
+   - 優 (5.33分)：同時滿足1~5，特別具備「然後等待約10秒」與即時回應。
+   - 劣 (2分)：只寫情境、漏掉等待，或落入考試式問句、太籠統。
+   - 0分：只寫單字詞 (如「等待」、「面對面」) 或完全無關。
+
+學生填寫的三個具體例子如下：
+例子 ①：${ex1.trim() || '（未作答）'}
+例子 ②：${ex2.trim() || '（未作答）'}
+例子 ③：${ex3.trim() || '（未作答）'}
+
+任務：
+請扮演語言治療臨床督導助教，以繁體中文客觀評閱：
+1. 【各例評分與向度檢核】：逐一評定例子①、②、③為優(5.33分)、劣(2分)或不計分(0分)，並給出總分 (0~16分)。
+2. 【專業點評】：針對五大向度檢核亮點與不足 (特別點出是否有做到「然後等待約10秒」)。
+3. 【總結勉勵】：親切專業勉勵。`;
+
+        const reply = await callLLM(env, [
+          { role: 'system', content: '你是一位專業、客觀且具啟發性的語言病理學臨床督導助教，使用繁體中文回覆，給出具體評分與點評。' },
+          { role: 'user', content: scoringPrompt }
+        ]);
+
+        return json({
+          success: true,
+          feedback: reply
+        });
+      } catch (err: any) {
+        console.error('Examples Review Error:', err);
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
     // 3. 查詢特定 Session 的訊息紀錄 (Get Messages)
     if (url.pathname === '/api/ai/tutor/messages' && request.method === 'GET') {
       try {
@@ -503,6 +611,111 @@ export default {
           .all();
 
         return json({ success: true, data: results });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // ========================================================
+    // 6. 自閉症第二節：學習單提交儲存至 D1 資料庫
+    // ========================================================
+    if (url.pathname === '/api/session2/submit' && request.method === 'POST') {
+      try {
+        const body = await request.json() as any;
+        const {
+          student_id,
+          student_name,
+          total_score = 0,
+          score_part1 = 0,
+          score_part2 = 0,
+          score_part3 = 0,
+          score_part4 = 0,
+          answers_json = {},
+          feedback_examples = '',
+          feedback_reflection = ''
+        } = body;
+
+        if (!student_id || !student_name || typeof student_id !== 'string' || typeof student_name !== 'string') {
+          return json({ success: false, error: '請輸入正確的學號與姓名' }, { status: 400 });
+        }
+
+        const serializedAnswers = typeof answers_json === 'string'
+          ? answers_json
+          : JSON.stringify(answers_json);
+
+        const result = await env.autism_comm_disorders_db
+          .prepare(`
+            INSERT INTO session2_submissions (
+              student_id, student_name, total_score, score_part1, score_part2, score_part3, score_part4,
+              answers_json, feedback_examples, feedback_reflection
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `)
+          .bind(
+            student_id.trim(),
+            student_name.trim(),
+            Number(total_score) || 0,
+            Number(score_part1) || 0,
+            Number(score_part2) || 0,
+            Number(score_part3) || 0,
+            Number(score_part4) || 0,
+            serializedAnswers,
+            feedback_examples || '',
+            feedback_reflection || ''
+          )
+          .run();
+
+        return json({
+          success: true,
+          message: '第二節學習單已成功提交並記錄至 D1 資料庫！',
+          submission_id: result.meta?.last_row_id || null
+        });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 7. 自閉症第二節：查詢全班學習單作答資料與成績 (供教師端總覽與 Excel 匯出)
+    if (url.pathname === '/api/session2/submissions' && request.method === 'GET') {
+      try {
+        const { results } = await env.autism_comm_disorders_db
+          .prepare(`
+            SELECT 
+              id, student_id, student_name, total_score,
+              score_part1, score_part2, score_part3, score_part4,
+              answers_json, feedback_examples, feedback_reflection,
+              submitted_at
+            FROM session2_submissions
+            ORDER BY submitted_at DESC
+          `)
+          .all();
+
+        const parsed = results.map((row: any) => {
+          let parsedAnswers = {};
+          try {
+            parsedAnswers = typeof row.answers_json === 'string' ? JSON.parse(row.answers_json) : row.answers_json;
+          } catch (e) {
+            parsedAnswers = { raw: row.answers_json };
+          }
+          return {
+            ...row,
+            answers: parsedAnswers
+          };
+        });
+
+        return json({ success: true, count: parsed.length, data: parsed });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 8. 自閉症第二節：清除所有歷史作答資料 (教師端專屬重設)
+    if ((url.pathname === '/api/session2/clear' || (url.pathname === '/api/session2/submissions' && url.searchParams.get('action') === 'clear')) && (request.method === 'POST' || request.method === 'DELETE')) {
+      try {
+        await env.autism_comm_disorders_db
+          .prepare('DELETE FROM session2_submissions')
+          .run();
+
+        return json({ success: true, message: '已成功清除 D1 資料庫中所有學生歷史作答紀錄！' });
       } catch (err: any) {
         return json({ success: false, error: err.message }, { status: 500 });
       }

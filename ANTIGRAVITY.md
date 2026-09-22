@@ -40,6 +40,31 @@
   - `POST /api/submissions`：接收前端作答數據並寫入 D1 資料庫
   - `GET /api/submissions?student_id={id}`：查詢學生或全班歷史作答紀錄
 
+### 4-2. 第二節：Hanen 方案學習單資料表 (session2_submissions)
+自閉症第二節（跟隨孩子的引導 Follow Your Child's Lead）學習單作答數據記錄：
+- 表名：session2_submissions
+- 欄位架構：
+  - id (INTEGER PRIMARY KEY AUTOINCREMENT)
+  - student_id (TEXT NOT NULL) — 學生學號
+  - student_name (TEXT NOT NULL) — 學生姓名
+  - 	otal_score (INTEGER NOT NULL DEFAULT 0) — 總成績 (0-100)
+  - score_part1 (INTEGER NOT NULL DEFAULT 0) — 壹、Let Your Child Lead (15分)
+  - score_part2 (INTEGER NOT NULL DEFAULT 0) — 貳、創造主動溝通機會 (30分)
+  - score_part3 (INTEGER NOT NULL DEFAULT 0) — 參、兒童溝通風格配對 (25分)
+  - score_part4 (INTEGER NOT NULL DEFAULT 0) — 肆、父母角色配對與反思 (30分)
+  - nswers_json (TEXT) — 完整作答內容 (含文字與配對卡片 JSON)
+  - eedback_examples (TEXT) — 0~2歲生活例子五大向度 AI 評分回饋
+  - eedback_reflection (TEXT) — 思考題反思評析
+  - submitted_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+- 支援 API 端點：
+  - POST /api/session2/submit：提交學習單成績與答案至 D1
+  - GET /api/session2/submissions：教師總覽與 Excel 匯出 (全班紀錄)
+  - POST /api/session2/clear：教師專屬一鍵清除第二節歷史作答
+  - POST /api/ai/review-examples：AI 臨床督導助教 0~2 歲實例評閱 (滿分16分)
+- **報表匯出防重複規範**：
+  - 第一頁籤【全班最新成績總表】：依學號嚴格去重，每人僅列最新一筆，並標註「累計測驗次數」。
+  - 第二頁籤【歷次作答軌跡總覽】：保留所有作答歷程，便於分析學生進步軌跡。
+
 ### 5. AI 蘇格拉底家教（方案三：錯題破障微對話）架構規範
 - **核心定位**：採用反詰問引導（Socratic Method），不直接提供答案，透過逐步階梯式提問引導學生自行推導並突破認知盲點。
 - **後端模型**：Groq API (`qwen/qwen3.8-27b`)，以高敏捷（<1.5秒/回合）、全繁體中文（台灣特教臨床語彙）進行引導。
