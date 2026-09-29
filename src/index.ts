@@ -65,6 +65,7 @@ function json(data: any, init?: { status?: number }) {
     status: init?.status || 200,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
       ...CORS_HEADERS
     }
   });
@@ -717,6 +718,187 @@ ${answer_text.trim()}
 
         return json({ success: true, message: '已成功清除 D1 資料庫中所有學生歷史作答紀錄！' });
       } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // ========================================================
+    // 9. 自閉症第三節：跟隨孩子引導四大核心策略 學習單提交
+    // ========================================================
+    if (url.pathname === '/api/session3/submit' && request.method === 'POST') {
+      try {
+        const body = await request.json() as any;
+        const {
+          student_id,
+          student_name,
+          total_score = 0,
+          score_part1 = 0,
+          score_part2 = 0,
+          score_part3 = 0,
+          score_part4 = 0,
+          score_part5 = 0,
+          score_part6 = 0,
+          score_part7 = 0,
+          answers_json = {},
+          ai_feedback = ''
+        } = body;
+
+        const finalStudentId = String(body.student_id ?? '').trim();
+        const finalStudentName = String(body.student_name ?? '').trim();
+
+        if (!finalStudentId || !finalStudentName) {
+          return json({ success: false, error: '請輸入正確的學號與姓名' }, { status: 400 });
+        }
+
+        const serializedAnswers = typeof answers_json === 'string'
+          ? answers_json
+          : JSON.stringify(answers_json);
+
+        const result = await env.autism_comm_disorders_db
+          .prepare(`
+            INSERT INTO session3_submissions (
+              student_id, student_name, total_score,
+              score_part1, score_part2, score_part3, score_part4, score_part5, score_part6, score_part7,
+              answers_json, ai_feedback
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `)
+          .bind(
+            finalStudentId,
+            finalStudentName,
+            Number(total_score) || 0,
+            Number(score_part1) || 0,
+            Number(score_part2) || 0,
+            Number(score_part3) || 0,
+            Number(score_part4) || 0,
+            Number(score_part5) || 0,
+            Number(score_part6) || 0,
+            Number(score_part7) || 0,
+            serializedAnswers,
+            ai_feedback || ''
+          )
+          .run();
+
+        return json({
+          success: true,
+          message: '第三節學習單已成功提交並記錄至 D1 資料庫！',
+          submission_id: result.meta?.last_row_id || null
+        });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 10. 自閉症第三節：查詢全班學習單作答資料與成績 (供教師端總覽與 Excel 匯出)
+    if (url.pathname === '/api/session3/submissions' && request.method === 'GET') {
+      try {
+        const { results } = await env.autism_comm_disorders_db
+          .prepare(`
+            SELECT 
+              id, student_id, student_name, total_score,
+              score_part1, score_part2, score_part3, score_part4, score_part5, score_part6, score_part7,
+              answers_json, ai_feedback, teacher_notes,
+              submitted_at
+            FROM session3_submissions
+            ORDER BY submitted_at DESC
+          `)
+          .all();
+
+        const parsed = results.map((row: any) => {
+          let parsedAnswers = {};
+          try {
+            parsedAnswers = typeof row.answers_json === 'string' ? JSON.parse(row.answers_json) : row.answers_json;
+          } catch (e) {
+            parsedAnswers = { raw: row.answers_json };
+          }
+          return {
+            ...row,
+            answers: parsedAnswers
+          };
+        });
+
+        return json({ success: true, count: parsed.length, data: parsed });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 11. 自閉症第三節：老師即時更新課堂回饋／討論註記
+    if (url.pathname === '/api/session3/update-notes' && request.method === 'POST') {
+      try {
+        const body = await request.json() as any;
+        const { id, teacher_notes } = body;
+        if (!id) {
+          return json({ success: false, error: '缺少 submission id' }, { status: 400 });
+        }
+
+        await env.autism_comm_disorders_db
+          .prepare('UPDATE session3_submissions SET teacher_notes = ? WHERE id = ?')
+          .bind(teacher_notes || '', Number(id))
+          .run();
+
+        return json({ success: true, message: '課堂討論註記已成功儲存至 D1 資料庫！' });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 12. 自閉症第三節：清除所有歷史作答資料 (教師端專屬重設)
+    if ((url.pathname === '/api/session3/clear' || (url.pathname === '/api/session3/submissions' && url.searchParams.get('action') === 'clear')) && (request.method === 'POST' || request.method === 'DELETE')) {
+      try {
+        await env.autism_comm_disorders_db
+          .prepare('DELETE FROM session3_submissions')
+          .run();
+
+        return json({ success: true, message: '已成功清除 D1 資料庫中第三節所有學生歷史作答紀錄！' });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 12. 自閉症第三節：AI 臨床督導助教 簡答題智慧審閱
+    if (url.pathname === '/api/ai/review-session3' && request.method === 'POST') {
+      try {
+        const body = await request.json() as any;
+        const {
+          student_name = '同學',
+          student_id = '',
+          question_topic = '跟隨引導策略',
+          question_text = '',
+          answer_text = '',
+          max_score = 5
+        } = body;
+
+        if (!answer_text || !answer_text.trim()) {
+          return json({ success: false, error: '請先輸入您的作答內容再請求 AI 助教審閱！' }, { status: 400 });
+        }
+
+        const reviewPrompt = `學生姓名：${student_name} (學號: ${student_id})
+題目主題：${question_topic}
+題目內容：${question_text}
+本題滿分：${max_score} 分
+
+學生作答內容：
+"""
+${answer_text.trim()}
+"""
+
+任務：
+請扮演專業的語言治療與自閉症早期療育臨床督導助教，依據 Hanen It Takes Two to Talk® 核心精神進行專業評閱：
+1. 【建議得分】：給出客觀建議得分（0 ~ ${max_score} 分）。
+2. 【向度評析】：針對學生的回答是否掌握跟隨孩子引導、OWL技巧、減少指令考試、及時回應、輪替等核心要素給予具體點評。
+3. 【臨床勉勵】：以溫暖、啟發性口吻給予建議。`;
+
+        const reply = await callLLM(env, [
+          { role: 'system', content: '你是一位專業、溫暖且具啟發性的語言病理學臨床督導助教，使用繁體中文（台灣特教臨床習慣）回答。' },
+          { role: 'user', content: reviewPrompt }
+        ]);
+
+        return json({
+          success: true,
+          feedback: reply
+        });
+      } catch (err: any) {
+        console.error('Session 3 AI Review Error:', err);
         return json({ success: false, error: err.message }, { status: 500 });
       }
     }

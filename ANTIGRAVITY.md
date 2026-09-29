@@ -65,6 +65,32 @@
   - 第一頁籤【全班最新成績總表】：依學號嚴格去重，每人僅列最新一筆，並標註「累計測驗次數」。
   - 第二頁籤【歷次作答軌跡總覽】：保留所有作答歷程，便於分析學生進步軌跡。
 
+### 4-3. 第三節：跟隨孩子引導四大核心策略學習單資料表 (session3_submissions)
+自閉症第三節（跟隨孩子引導有四大核心策略 Follow Your Child's Lead）學習單作答數據記錄（最新精簡版 100 分制）：
+- 表名：`session3_submissions`
+- 欄位架構：
+  - `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
+  - `student_id` (TEXT NOT NULL) — 學生學號
+  - `student_name` (TEXT NOT NULL) — 學生姓名
+  - `total_score` (INTEGER NOT NULL DEFAULT 0) — 總成績 (0-100)
+  - `score_part1` (INTEGER NOT NULL DEFAULT 0) — 壹、核心理念篇 (15分：四大法寶9分 + OWL技巧6分)
+  - `score_part2` (INTEGER NOT NULL DEFAULT 0) — 貳、影片觀察篇一：Sean與媽媽 (15分：三種跟隨技巧與具體行為)
+  - `score_part3` (INTEGER NOT NULL DEFAULT 0) — 參、策略深究一：Justin與爸爸參與＆遊戲 (20分：位置態度6分 + 玩具沙坑7分 + 語言音效7分)
+  - `score_part4` (INTEGER NOT NULL DEFAULT 0) — 肆、策略深究二：模仿技巧三個層次 (15分：動作5分 + 聲音5分 + 字詞5分)
+  - `score_part5` (INTEGER NOT NULL DEFAULT 0) — 伍、策略深究三：解讀／詮釋 Grace與Zarina (17分：Grace吹泡泡9分 + Zarina建立自我意識與賦予意圖8分)
+  - `score_part6` (INTEGER NOT NULL DEFAULT 0) — 陸、策略深究四：評論／平行談話 Ben點心時間 (18分：大人做的事6分 + 物品特徵6分 + 感受行為6分)
+  - `answers_json` (TEXT) — 完整作答內容 (包含填空與各題文字回應 JSON)
+  - `ai_feedback` (TEXT) — AI 助教審閱回饋與學習建議
+  - `teacher_notes` (TEXT) — 課堂即時討論註記
+  - `submitted_at` (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+- 支援 API 端點：
+  - `POST /api/session3/submit`：提交學習單成績與答案至 D1
+  - `GET /api/session3/submissions`：教師總覽與 Excel 匯出 (全班紀錄)
+  - `POST /api/session3/clear`：教師專屬一鍵清除第三節歷史作答
+  - `POST /api/ai/review-session3`：AI 臨床督導助教 簡答題智慧審閱
+- 影片資產配置：
+  - 於 `public/videos/` 配置標準 MP4 格式示範影片（`itttr2-05.mp4` 至 `itttr2-09.mp4`），供前端直接內嵌流暢播放。
+
 ### 5. AI 蘇格拉底家教（方案三：錯題破障微對話）架構規範
 - **核心定位**：採用反詰問引導（Socratic Method），不直接提供答案，透過逐步階梯式提問引導學生自行推導並突破認知盲點。
 - **後端模型**：Groq API (`qwen/qwen3.8-27b`)，以高敏捷（<1.5秒/回合）、全繁體中文（台灣特教臨床語彙）進行引導。

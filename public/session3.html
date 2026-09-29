@@ -1,0 +1,2119 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>【Session 2-2 課堂學習單】跟隨孩子引導 - 課堂線上互動學習單</title>
+  <!-- SheetJS for Excel Export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            autism: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              900: '#0c4a6e',
+            },
+            hanen: {
+              50: '#fff7ed',
+              100: '#ffedd5',
+              200: '#fed7aa',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c',
+              800: '#9a3412',
+              900: '#7c2d12',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap');
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .fill-input {
+      border-bottom: 2px solid #cbd5e1;
+      background-color: #f8fafc;
+      transition: all 0.2s ease-in-out;
+      padding: 2px 8px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .fill-input:focus {
+      outline: none;
+      border-bottom-color: #0284c7;
+      background-color: #f0f9ff;
+    }
+    .fill-input.correct {
+      border-bottom-color: #16a34a !important;
+      background-color: #f0fdf4 !important;
+      color: #15803d !important;
+    }
+    .fill-input.incorrect {
+      border-bottom-color: #dc2626 !important;
+      background-color: #fef2f2 !important;
+      color: #b91c1c !important;
+    }
+    @media print {
+      header, aside, .no-print, button, #toast, #scoreReportModalOverlay, #teacherDashboardModalOverlay, #aiReviewModal {
+        display: none !important;
+      }
+      body {
+        background: white !important;
+        color: black !important;
+      }
+      .print-shadow-none {
+        box-shadow: none !important;
+        border: 1px solid #cbd5e1 !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- 頂部導航列 -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <button id="sidebarToggle" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden">
+          <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md">
+          <i class="fa-solid fa-shapes text-lg"></i>
+        </div>
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-sky-700 bg-sky-50 px-2 py-0.5 rounded">It Takes Two to Talk®</span>
+          <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">【Session 2-2 課堂學習單】跟隨孩子引導</h1>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <!-- 🌟 老師檢視成績 醒目按鈕 🌟 -->
+        <button id="teacherDashboardBtn" type="button" onclick="loadTeacherDashboard()" class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black text-white bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-800 shadow-md shadow-emerald-600/20 transition transform hover:-translate-y-0.5" title="檢視全班同學的作答內容、成績並進行課堂討論">
+          <i class="fa-solid fa-chalkboard-user text-sm"></i>
+          <span>老師檢視成績</span>
+        </button>
+
+        <!-- 學生身分登記按鈕 -->
+        <button id="studentProfileBtn" type="button" onclick="openStudentModal()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 transition shadow-sm">
+          <i class="fa-solid fa-user-graduate"></i>
+          <span id="studentProfileText">登記學號姓名</span>
+        </button>
+
+        <!-- 暫存學習單 -->
+        <button id="saveDraftBtn" type="button" onclick="saveDraft(true)" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-sky-700 bg-sky-50 border border-sky-200 hover:bg-sky-100 transition shadow-sm">
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span class="hidden sm:inline">暫存學習單</span>
+        </button>
+
+        <!-- 列印 / 匯出 PDF -->
+        <button id="printBtn" type="button" onclick="window.print()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition shadow-sm">
+          <i class="fa-solid fa-print"></i>
+          <span class="hidden sm:inline">列印 / 匯出 PDF</span>
+        </button>
+
+        <!-- 重新開始測驗 -->
+        <button id="resetWorksheetHeaderBtn" type="button" onclick="confirmResetWorksheet()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition shadow-sm" title="清空當前作答並重新開始測驗">
+          <i class="fa-solid fa-rotate-left"></i>
+          <span>重填</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主內容佈局 -->
+  <div class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex gap-6">
+
+    <!-- 左側章節選單 (Sidebar) -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 transform -translate-x-full lg:translate-x-0 lg:static lg:z-auto transition-transform duration-300 ease-in-out flex flex-col shadow-xl lg:shadow-none rounded-2xl lg:border lg:h-[calc(100vh-6.5rem)] lg:sticky lg:top-20 no-print">
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+        <h2 class="font-bold text-slate-800 flex items-center space-x-2 text-sm">
+          <i class="fa-solid fa-layer-group text-sky-600"></i>
+          <span>課程單元與活動</span>
+        </h2>
+        <button id="closeSidebar" class="p-1.5 text-slate-400 hover:text-slate-600 lg:hidden">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+        <!-- 第一節 -->
+        <a href="index.html" class="block p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition group">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">第一節</span>
+            <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
+          </div>
+          <h4 class="font-bold text-xs text-slate-800 group-hover:text-autism-600 transition">自閉症兒童的診斷以及臨床表現</h4>
+          <p class="text-[11px] text-slate-500 mt-0.5 line-clamp-1">DSM-5 準則、流行病學與 10 題核心檢測。</p>
+        </a>
+
+        <!-- 第二節 -->
+        <a href="session2.html" class="block p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition group">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-semibold text-orange-700 bg-orange-100 px-2 py-0.5 rounded">第二節</span>
+            <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
+          </div>
+          <h4 class="font-bold text-xs text-slate-800 group-hover:text-orange-600 transition">跟隨孩子的引導 (2-1 學習單)</h4>
+          <p class="text-[11px] text-slate-500 mt-0.5 line-clamp-1">創造溝通機會、溝通風格與父母角色。</p>
+        </a>
+
+        <!-- 第三節：當前學習單 -->
+        <div class="p-3 rounded-xl bg-sky-50 border border-sky-200 text-sky-950 shadow-sm relative">
+          <div class="flex items-start justify-between">
+            <span class="inline-block text-[11px] font-bold uppercase tracking-wider text-sky-700 bg-sky-100 px-2 py-0.5 rounded mb-1">
+              當前單元 · 課堂學習單
+            </span>
+            <i class="fa-solid fa-pen-to-square text-sky-600 text-xs mt-0.5"></i>
+          </div>
+          <h3 class="font-bold text-sm text-slate-900">【Session 2-2 課堂學習單】跟隨孩子引導</h3>
+          <p class="text-xs text-slate-600 mt-1">Hanens3 示範影片、四大策略深入分析（滿分100分）。</p>
+
+          <!-- 題號快捷跳轉 (精簡 6 大單元) -->
+          <div class="mt-3 pt-2 border-t border-sky-200/60 text-[11px] space-y-1 font-medium">
+            <a href="#part1-section" class="block text-sky-800 hover:text-sky-600"><i class="fa-solid fa-compass mr-1"></i>壹、核心理念篇 (15分)</a>
+            <a href="#part2-section" class="block text-sky-800 hover:text-sky-600"><i class="fa-solid fa-video mr-1"></i>貳、影片一：Sean與媽媽 (15分)</a>
+            <a href="#part3-section" class="block text-sky-800 hover:text-sky-600"><i class="fa-solid fa-gamepad mr-1"></i>參、策略一：參與＆遊戲 (20分)</a>
+            <a href="#part4-section" class="block text-sky-800 hover:text-sky-600"><i class="fa-solid fa-copy mr-1"></i>肆、策略二：模仿技巧 (15分)</a>
+            <a href="#part5-section" class="block text-sky-800 hover:text-sky-600"><i class="fa-solid fa-magnifying-glass mr-1"></i>伍、策略三：解讀／詮釋 (17分)</a>
+            <a href="#part6-section" class="block text-sky-800 hover:text-sky-600"><i class="fa-solid fa-comment-dots mr-1"></i>陸、策略四：表示意見／評論 (18分)</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 底部提醒 -->
+      <div class="p-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 rounded-b-2xl">
+        <div class="flex items-center space-x-1.5 text-slate-700 font-medium">
+          <i class="fa-solid fa-server text-emerald-600"></i>
+          <span>Cloudflare D1 資料庫即時連線</span>
+        </div>
+        <p class="mt-1 text-[11px] text-slate-500 leading-normal font-mono">
+          autism-comm-disorders-db
+        </p>
+      </div>
+    </aside>
+
+    <!-- 右側學習單主體區 -->
+    <main class="flex-1 min-w-0 flex flex-col space-y-6">
+
+      <!-- 學生身分登記橫幅：支援直接輸入學號姓名，確保 100% 成功連線 D1 -->
+      <div id="studentBanner" class="p-4 sm:p-5 rounded-2xl border transition-all duration-300 flex flex-col md:flex-row items-center justify-between gap-4 bg-gradient-to-r from-indigo-50/90 via-sky-50/80 to-blue-50/90 border-indigo-200 text-indigo-950 shadow-sm no-print">
+        <div class="flex items-center space-x-3 w-full md:w-auto">
+          <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+            <i class="fa-solid fa-id-card text-lg"></i>
+          </div>
+          <div>
+            <div class="text-sm font-bold flex items-center space-x-2">
+              <span id="studentBannerTitle">課堂學生身分登記</span>
+              <span id="studentBannerStatusBadge" class="text-[11px] px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-300">尚未確認登記</span>
+            </div>
+            <p class="text-xs text-indigo-700 mt-0.5">請在此直接輸入「學號」與「姓名」，作答歷程與成績將 100% 同步記錄至 Cloudflare D1 資料庫：</p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2 w-full md:w-auto">
+          <div class="flex-1 md:w-36">
+            <input type="text" id="directStudentId" placeholder="輸入學號 (如 110022)" class="w-full px-3 py-2 text-xs font-bold border-2 border-indigo-200 rounded-xl bg-white focus:border-indigo-600 focus:outline-none shadow-inner">
+          </div>
+          <div class="flex-1 md:w-36">
+            <input type="text" id="directStudentName" placeholder="輸入姓名 (如 王小明)" class="w-full px-3 py-2 text-xs font-bold border-2 border-indigo-200 rounded-xl bg-white focus:border-indigo-600 focus:outline-none shadow-inner">
+          </div>
+          <button type="button" id="confirmDirectStudentBtn" onclick="confirmDirectStudent()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition flex-shrink-0 flex items-center space-x-1">
+            <i class="fa-solid fa-check"></i>
+            <span>確認登記</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 🌟 已交卷狀態橫幅（交卷後顯示，點擊可隨時再次檢視成績單，並安心複習下方填答內容） -->
+      <div id="submittedNoticeBanner" class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-green-50 border-2 border-emerald-300 text-emerald-950 shadow-md flex items-center justify-between flex-wrap gap-4 hidden no-print">
+        <div class="flex items-center space-x-3.5">
+          <div class="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xl shadow-sm flex-shrink-0">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <div>
+            <div class="text-sm sm:text-base font-black flex items-center space-x-2">
+              <span>本次學習單已完成交卷！結算總分：</span>
+              <span id="submittedNoticeScore" class="text-emerald-700 font-mono text-xl font-black">--</span>
+              <span class="text-sm font-bold text-slate-500">/ 100 分</span>
+              <span id="submittedNoticeDbBadge" class="text-xs bg-emerald-200/80 text-emerald-900 px-2.5 py-0.5 rounded-full font-bold">
+                <i class="fa-solid fa-database mr-1"></i>已同步寫入 Cloudflare D1
+              </span>
+            </div>
+            <p class="text-xs text-emerald-800/90 mt-1">
+              您所有的作答填答已完整保留於下方欄位中供您檢視與複習。如需重溫評語與詳答，請點選「再次檢視成績單」。
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2 flex-shrink-0">
+          <button type="button" onclick="reopenScoreReportModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-sm">
+            <i class="fa-solid fa-award"></i>
+            <span>再次檢視成績單</span>
+          </button>
+          <button type="button" onclick="confirmResetWorksheet(true)" class="px-4 py-2 bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-sm">
+            <i class="fa-solid fa-rotate-left"></i>
+            <span>重新填寫</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 學習單抬頭卡片 -->
+      <div class="bg-gradient-to-r from-sky-600 via-indigo-600 to-blue-700 rounded-2xl p-6 sm:p-7 text-white shadow-lg relative overflow-hidden print-shadow-none">
+        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+        <div class="relative z-10">
+          <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+            <span class="bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full backdrop-blur-sm">
+              亞洲大學／自閉症溝通障礙（It Takes Two to Talk®）
+            </span>
+            <span class="bg-amber-300/30 text-amber-100 text-xs font-extrabold px-3 py-1 rounded-full border border-amber-300/40">
+              全卷總分：100 分
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black tracking-tight text-white mb-1">
+            【Session 2-2 課堂學習單】跟隨孩子引導
+          </h2>
+          <p class="text-xs sm:text-sm text-sky-100 opacity-90 leading-relaxed max-w-3xl">
+            單元主題：跟隨孩子的引導，促進互動成長（Follow Your Child’s Lead and Let the Interaction Grow）。
+            對應教材：Hanens3.ppt 簡報與示範影片（itttr2-05 ~ itttr2-09）。
+          </p>
+
+          <div class="mt-4 pt-3 border-t border-white/20 flex items-center justify-between text-xs text-sky-100 font-medium flex-wrap gap-2">
+            <div class="flex items-center space-x-3">
+              <span><i class="fa-solid fa-graduation-cap mr-1"></i>聽語系 語言組</span>
+              <span><i class="fa-solid fa-user-tie mr-1"></i>林樺鋒老師 授課</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span id="headerStudentBadge" class="bg-white/20 px-2.5 py-0.5 rounded-lg text-white font-semibold">訪客同學</span>
+              <span class="text-xs bg-emerald-500/80 px-2 py-0.5 rounded text-white font-bold">100分評分制</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- 壹、核心理念篇：何謂「跟隨孩子的引導」？ (15分) -->
+      <!-- ========================================== -->
+      <section id="part1-section" class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-sm space-y-5">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-black text-sm">壹</span>
+            <h3 class="font-extrabold text-base sm:text-lg text-slate-900">核心理念篇：何謂「跟隨孩子的引導」？（Slide 2）</h3>
+          </div>
+          <span class="text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-200">配分：15 分</span>
+        </div>
+
+        <div class="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+          <!-- 題 1：四大核心策略填空 (9分) -->
+          <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200 space-y-2">
+            <div class="font-bold text-slate-900 flex items-center justify-between">
+              <span>1. 投影片與課本指出，跟隨孩子引導有四大核心策略（四大法寶）： <span class="text-xs text-sky-700 font-normal">（共 6 格，每格 1.5 分，共 9 分）</span></span>
+            </div>
+            <div class="space-y-2 pl-2 leading-loose">
+              <p>① 富興趣地 <input type="text" id="p1_blank1" data-ans="立即回應|即時回應|立即反應|即時反應|respond immediately" class="fill-input w-28 text-center" placeholder="填空">（Respond immediately with interest）</p>
+              <p>② <input type="text" id="p1_blank2" data-ans="參與＆遊戲|參與與遊戲|參與遊戲|加入並玩|加入遊戲|join in and play" class="fill-input w-28 text-center" placeholder="填空">（Join in and play）</p>
+              <p>③ 藉你的行為與言語去跟隨（Follow with actions and words）：包含 <input type="text" id="p1_blank3" data-ans="模仿|imitate" class="fill-input w-20 text-center" placeholder="填空">（Imitate）、<input type="text" id="p1_blank4" data-ans="解讀|詮釋|解讀／詮釋|interpret" class="fill-input w-24 text-center" placeholder="填空">（Interpret）、<input type="text" id="p1_blank5" data-ans="表示意見|評論|表示意見／評論|發表評論|make a comment|表達意見" class="fill-input w-28 text-center" placeholder="填空">（Make a comment）</p>
+              <p>④ 適當的 <input type="text" id="p1_blank6" data-ans="貫徹到底|堅持到底|執行到底|跟隨到底|跟隨結果|跟進結果|follow through" class="fill-input w-28 text-center" placeholder="填空">（Follow through）</p>
+            </div>
+          </div>
+
+          <!-- 題 2：OWL 填空 (6分) -->
+          <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200 space-y-2">
+            <div class="font-bold text-slate-900 flex items-center justify-between">
+              <span>2. 在互動的每一個循環中，大人都要落實第一堂課學到的「OWL」技巧： <span class="text-xs text-sky-700 font-normal">（共 3 格，每格 2 分，共 6 分）</span></span>
+            </div>
+            <p class="leading-loose pl-2">
+              O＝<input type="text" id="p1_blank7" data-ans="觀察|observe" class="fill-input w-28 text-center" placeholder="填空">、
+              W＝<input type="text" id="p1_blank8" data-ans="等待|wait" class="fill-input w-28 text-center" placeholder="填空">、
+              L＝<input type="text" id="p1_blank9" data-ans="傾聽|聆聽|listen" class="fill-input w-28 text-center" placeholder="填空">。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- 貳、影片觀察篇一：綜合跟隨策略——Sean 與媽媽 (15分) -->
+      <!-- ========================================== -->
+      <section id="part2-section" class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-sm space-y-5">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-black text-sm">貳</span>
+            <h3 class="font-extrabold text-base sm:text-lg text-slate-900">影片觀察篇一：綜合跟隨策略——Sean 與媽媽（Slide 3）</h3>
+          </div>
+          <span class="text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-200">配分：15 分</span>
+        </div>
+
+        <!-- 影片播放器容器 -->
+        <div class="bg-slate-900 rounded-2xl overflow-hidden shadow-md max-w-xl mx-auto">
+          <video controls class="w-full aspect-video" preload="metadata">
+            <source src="videos/itttr2-05.mp4" type="video/mp4">
+            您的瀏覽器不支援直接播放 MP4 影片。
+          </video>
+          <div class="p-2.5 bg-slate-800 text-slate-300 text-xs flex justify-between items-center">
+            <span><i class="fa-solid fa-film mr-1.5 text-sky-400"></i>示範影片：Sean 與媽媽的桌面互動（itttr2-05）</span>
+            <span class="text-slate-400">時長：51 秒</span>
+          </div>
+        </div>
+
+        <!-- 簡答題 -->
+        <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200 space-y-2">
+          <div class="font-bold text-slate-900 flex items-center justify-between">
+            <span>1.【影片簡答題】 投影片思考題：What does Sean’s mom do to follow his lead each time he initiates?（15 分）</span>
+          </div>
+          <p class="text-xs text-slate-600">在影片中，Sean 的媽媽在每一次 Sean 開啟話題／主動表達的時候做了些什麼？請仔細觀察影片，寫出媽媽展現的<strong>至少三種具體跟隨技巧及其對應的行為</strong>（每種技巧 5 分）：</p>
+          <textarea id="p2_essay" rows="5" class="w-full p-3 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+          
+          <div class="flex justify-between items-center pt-1">
+            <span id="p2_essay_count" class="text-xs text-slate-400">已輸入 0 字</span>
+            <button type="button" onclick="requestAIReview('貳、Sean 媽媽跟隨技巧與行為', 'p2_essay', 15)" class="px-3 py-1 bg-sky-100 hover:bg-sky-200 text-sky-800 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+              <i class="fa-solid fa-robot text-sky-600"></i>
+              <span>請 AI 助教審閱本題</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- 參、策略一：參與＆遊戲——Justin 與爸爸 (20分) -->
+      <!-- ========================================== -->
+      <section id="part3-section" class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-sm space-y-5">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-black text-sm">參</span>
+            <h3 class="font-extrabold text-base sm:text-lg text-slate-900">策略一：參與＆遊戲（Join in and Play）——Justin 與爸爸（Slide 4–7）</h3>
+          </div>
+          <span class="text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-200">配分：20 分</span>
+        </div>
+
+        <!-- 影片播放器容器 -->
+        <div class="bg-slate-900 rounded-2xl overflow-hidden shadow-md max-w-xl mx-auto">
+          <video controls class="w-full aspect-video" preload="metadata">
+            <source src="videos/itttr2-06.mp4" type="video/mp4">
+            您的瀏覽器不支援直接播放 MP4 影片。
+          </video>
+          <div class="p-2.5 bg-slate-800 text-slate-300 text-xs flex justify-between items-center">
+            <span><i class="fa-solid fa-film mr-1.5 text-sky-400"></i>示範影片：Justin 與爸爸在戶外沙坑中玩沙（itttr2-06）</span>
+            <span class="text-slate-400">時長：62 秒</span>
+          </div>
+        </div>
+
+        <!-- 3 個子題 -->
+        <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200 space-y-4">
+          <div class="font-bold text-slate-900">
+            <span>1.【影片深度觀察簡答】請仔細觀察影片 Justin 與爸爸（itttr2-06_MPEG1.mpg），從投影片 Slide 4 的三個問題深入分析爸爸的示範做法：</span>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-800">(1) 【爸爸的位置與態度】（How is he positioned & his attitude?）爸爸採取什麼姿勢？展現出怎樣的情感態度？ <span class="text-sky-700 font-normal">（6 分）</span></label>
+            <textarea id="p3_essay1" rows="2" class="w-full p-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-800">(2) 【爸爸如何使用玩具】（How does he use toys?）爸爸是直接拿走孩子的玩具，還是有其他巧妙做法？他是如何創造遊戲互動的？ <span class="text-sky-700 font-normal">（7 分）</span></label>
+            <textarea id="p3_essay2" rows="2" class="w-full p-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-800">(3) 【爸爸使用了哪些聲音與字詞】（What sounds and words does he use?）請舉出影片中爸爸所說的具體語句與生動表達（至少寫出 2 句）： <span class="text-sky-700 font-normal">（7 分）</span></label>
+            <textarea id="p3_essay3" rows="2" class="w-full p-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+          </div>
+
+          <div class="flex justify-end pt-1">
+            <button type="button" onclick="requestAIReview('參、Justin 爸爸參與遊戲三向度分析', 'p3_essay2', 20)" class="px-3 py-1 bg-sky-100 hover:bg-sky-200 text-sky-800 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+              <i class="fa-solid fa-robot text-sky-600"></i>
+              <span>請 AI 助教審閱本題作答</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- 肆、策略二：模仿技巧 (15分) -->
+      <!-- ========================================== -->
+      <section id="part4-section" class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-sm space-y-5">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-black text-sm">肆</span>
+            <h3 class="font-extrabold text-base sm:text-lg text-slate-900">策略二：模仿技巧（Imitate）（Slide 8–10）</h3>
+          </div>
+          <span class="text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-200">配分：15 分</span>
+        </div>
+
+        <!-- 影片播放器容器 -->
+        <div class="bg-slate-900 rounded-2xl overflow-hidden shadow-md max-w-xl mx-auto">
+          <video controls class="w-full aspect-video" preload="metadata">
+            <source src="videos/itttr2-07.mp4" type="video/mp4">
+            您的瀏覽器不支援直接播放 MP4 影片。
+          </video>
+          <div class="p-2.5 bg-slate-800 text-slate-300 text-xs flex justify-between items-center">
+            <span><i class="fa-solid fa-film mr-1.5 text-sky-400"></i>示範影片：大人示範模仿技巧的三個層次（itttr2-07）</span>
+            <span class="text-slate-400">時長：32 秒</span>
+          </div>
+        </div>
+
+        <!-- 簡答題 -->
+        <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200 space-y-3">
+          <div class="font-bold text-slate-900">
+            <span>1.【示範影片層次解析簡答】 在影片 itttr2-07 中，旁白與示範呈現了模仿的三個不同層次，有哪三個？請分別說明其意涵與做法： <span class="text-xs text-sky-700 font-normal">（共 15 分，各 5 分）</span></span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+              <span class="font-bold text-xs text-sky-800">層次一（5分）</span>
+              <textarea id="p4_actions" rows="3" class="w-full p-2 text-xs border border-slate-300 rounded-lg focus:outline-none"></textarea>
+            </div>
+            <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+              <span class="font-bold text-xs text-sky-800">層次二（5分）</span>
+              <textarea id="p4_sounds" rows="3" class="w-full p-2 text-xs border border-slate-300 rounded-lg focus:outline-none"></textarea>
+            </div>
+            <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+              <span class="font-bold text-xs text-sky-800">層次三（5分）</span>
+              <textarea id="p4_words" rows="3" class="w-full p-2 text-xs border border-slate-300 rounded-lg focus:outline-none"></textarea>
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-1">
+            <button type="button" onclick="requestAIReview('肆、模仿技巧三個不同層次', 'p4_actions', 15)" class="px-3 py-1 bg-sky-100 hover:bg-sky-200 text-sky-800 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+              <i class="fa-solid fa-robot text-sky-600"></i>
+              <span>請 AI 助教審閱本題作答</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- 伍、策略三：解讀／詮釋——Grace 與 Zarina (17分) -->
+      <!-- ========================================== -->
+      <section id="part5-section" class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-sm space-y-5">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-black text-sm">伍</span>
+            <h3 class="font-extrabold text-base sm:text-lg text-slate-900">策略三：解讀／詮釋（Interpret）——Grace 與 Zarina（Slide 11–15）</h3>
+          </div>
+          <span class="text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-200">配分：17 分</span>
+        </div>
+
+        <!-- 雙影片容器 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="bg-slate-900 rounded-2xl overflow-hidden shadow-md">
+            <video controls class="w-full aspect-video" preload="metadata">
+              <source src="videos/itttr2-08a.mp4" type="video/mp4">
+            </video>
+            <div class="p-2 bg-slate-800 text-slate-300 text-xs">
+              <span class="font-bold text-sky-400">影片一（itttr2-08a）：</span>Grace 與媽媽吹泡泡
+            </div>
+          </div>
+
+          <div class="bg-slate-900 rounded-2xl overflow-hidden shadow-md">
+            <video controls class="w-full aspect-video" preload="metadata">
+              <source src="videos/itttr2-08b.mp4" type="video/mp4">
+            </video>
+            <div class="p-2 bg-slate-800 text-slate-300 text-xs">
+              <span class="font-bold text-sky-400">影片二（itttr2-08b）：</span>Zarina 躺在軟墊上與媽媽互動
+            </div>
+          </div>
+        </div>
+
+        <!-- 題 1 Grace (9分) -->
+        <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200 space-y-3">
+          <div class="font-bold text-slate-900">
+            <span>1.【影片簡答一：Grace 與媽媽吹泡泡】（Slide 12，共 9 分）</span>
+          </div>
+
+          <div class="space-y-1">
+            <label class="block text-xs font-bold text-slate-800">(1) 媽媽是如何解讀 Grace 的聲音與動作的？她觀察到了哪些非語言線索？ <span class="text-sky-700 font-normal">（4.5 分）</span></label>
+            <textarea id="p5_grace1" rows="2" class="w-full p-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+          </div>
+
+          <div class="space-y-1">
+            <label class="block text-xs font-bold text-slate-800">(2) 依據 Hanen 原則，媽媽另外還可以嘗試對 Grace 說些什麼字詞（What else could she say?） <span class="text-sky-700 font-normal">（4.5 分）</span></label>
+            <textarea id="p5_grace2" rows="2" class="w-full p-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+          </div>
+        </div>
+
+        <!-- 題 2 Zarina (8分) -->
+        <div class="p-4 rounded-xl bg-sky-50/50 border border-sky-200 space-y-2">
+          <div class="font-bold text-sky-950">
+            <span>2.【影片簡答二：Zarina 與媽媽】（Slide 13/14，共 8 分）</span>
+          </div>
+          <p class="text-xs text-slate-600">思考題：為什麼 Zarina 的媽媽將 Zarina 微弱的聲音與身體動作視為「有意義的」？（Why does Mom interpret Zarina’s sounds and movements as meaningful?）這對處於早期探索期（Discoverer）的孩子有何深遠影響？</p>
+          <textarea id="p5_zarina" rows="3" class="w-full p-3 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+          
+          <div class="flex justify-end pt-1">
+            <button type="button" onclick="requestAIReview('伍、解讀技巧（Grace與Zarina）', 'p5_zarina', 8)" class="px-3 py-1 bg-sky-100 hover:bg-sky-200 text-sky-800 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+              <i class="fa-solid fa-robot text-sky-600"></i>
+              <span>請 AI 助教審閱本題作答</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- 陸、策略四：表示意見／評論（Comment）——Ben 與媽媽 (18分) -->
+      <!-- ========================================== -->
+      <section id="part6-section" class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-sm space-y-5">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-black text-sm">陸</span>
+            <h3 class="font-extrabold text-base sm:text-lg text-slate-900">策略四：表示意見／評論（Comment）——Ben 與媽媽（Slide 16–19）</h3>
+          </div>
+          <span class="text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-200">配分：18 分</span>
+        </div>
+
+        <!-- 影片播放器容器 -->
+        <div class="bg-slate-900 rounded-2xl overflow-hidden shadow-md max-w-xl mx-auto">
+          <video controls class="w-full aspect-video" preload="metadata">
+            <source src="videos/itttr2-09.mp4" type="video/mp4">
+            您的瀏覽器不支援直接播放 MP4 影片。
+          </video>
+          <div class="p-2.5 bg-slate-800 text-slate-300 text-xs flex justify-between items-center">
+            <span><i class="fa-solid fa-film mr-1.5 text-sky-400"></i>示範影片：Ben 在餐椅上吃點心，媽媽給予平行談話與評論（itttr2-09）</span>
+            <span class="text-slate-400">時長：32 秒</span>
+          </div>
+        </div>
+
+        <!-- 3 個子題：分開輸入「媽媽說的話」與「學生自我表達」，嚴格獨立評分 -->
+        <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200 space-y-4">
+          <div class="font-bold text-slate-900 flex items-center justify-between flex-wrap gap-2">
+            <span>1.【影片深度觀察簡答】觀察影片 Ben 的媽媽在點心時間發表了哪些不同層面的評論？請結合影片對話舉例說明：（共 18 分，3 個小題各 6 分）</span>
+            <span class="text-xs text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200 font-semibold">每小題：媽媽原話 3 分 ＋ 學生自我表達 3 分</span>
+          </div>
+
+          <!-- (1) 描述大人自己正在做的事 -->
+          <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3">
+            <div class="flex items-center justify-between border-b pb-1.5">
+              <span class="font-bold text-xs sm:text-sm text-slate-900">(1) 【描述大人自己正在做的事】</span>
+              <span class="text-[11px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-100">本小題共 6 分</span>
+            </div>
+            
+            <div class="space-y-1">
+              <label class="block text-xs font-semibold text-slate-700">
+                <span class="w-5 h-5 rounded-full bg-sky-100 text-sky-700 inline-flex items-center justify-center text-[10px] font-bold mr-1">①</span>
+                媽媽倒果汁時說了什麼？ <span class="text-sky-700 font-normal">（3 分）</span>
+              </label>
+              <textarea id="p6_1_mom" rows="2" class="w-full p-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder=""></textarea>
+            </div>
+
+            <div class="space-y-1">
+              <label class="block text-xs font-semibold text-slate-700">
+                <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 inline-flex items-center justify-center text-[10px] font-bold mr-1">②</span>
+                如果你是媽媽，你會說甚麼？（學生自我表達） <span class="text-indigo-700 font-normal">（3 分）</span>
+              </label>
+              <textarea id="p6_1_self" rows="2" class="w-full p-2.5 text-xs sm:text-sm border border-indigo-200 bg-indigo-50/20 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder=""></textarea>
+            </div>
+          </div>
+
+          <!-- (2) 描述環境中物品的特徵與當前狀態 -->
+          <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3">
+            <div class="flex items-center justify-between border-b pb-1.5">
+              <span class="font-bold text-xs sm:text-sm text-slate-900">(2) 【描述環境中物品的特徵與當前狀態】</span>
+              <span class="text-[11px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-100">本小題共 6 分</span>
+            </div>
+            
+            <div class="space-y-1">
+              <label class="block text-xs font-semibold text-slate-700">
+                <span class="w-5 h-5 rounded-full bg-sky-100 text-sky-700 inline-flex items-center justify-center text-[10px] font-bold mr-1">①</span>
+                媽媽指著杯子時說了什麼？ <span class="text-sky-700 font-normal">（3 分）</span>
+              </label>
+              <textarea id="p6_2_mom" rows="2" class="w-full p-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder=""></textarea>
+            </div>
+
+            <div class="space-y-1">
+              <label class="block text-xs font-semibold text-slate-700">
+                <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 inline-flex items-center justify-center text-[10px] font-bold mr-1">②</span>
+                如果你是媽媽，你會說甚麼？（學生自我表達） <span class="text-indigo-700 font-normal">（3 分）</span>
+              </label>
+              <textarea id="p6_2_self" rows="2" class="w-full p-2.5 text-xs sm:text-sm border border-indigo-200 bg-indigo-50/20 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder=""></textarea>
+            </div>
+          </div>
+
+          <!-- (3) 描述孩子的內在感受與行為 -->
+          <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3">
+            <div class="flex items-center justify-between border-b pb-1.5">
+              <span class="font-bold text-xs sm:text-sm text-slate-900">(3) 【描述孩子的內在感受與行為】</span>
+              <span class="text-[11px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-100">本小題共 6 分</span>
+            </div>
+            
+            <div class="space-y-1">
+              <label class="block text-xs font-semibold text-slate-700">
+                <span class="w-5 h-5 rounded-full bg-sky-100 text-sky-700 inline-flex items-center justify-center text-[10px] font-bold mr-1">①</span>
+                媽媽體察 Ben 的感受時說了什麼？ <span class="text-sky-700 font-normal">（3 分）</span>
+              </label>
+              <textarea id="p6_3_mom" rows="2" class="w-full p-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder=""></textarea>
+            </div>
+
+            <div class="space-y-1">
+              <label class="block text-xs font-semibold text-slate-700">
+                <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 inline-flex items-center justify-center text-[10px] font-bold mr-1">②</span>
+                如果你是媽媽，你會說甚麼？（學生自我表達） <span class="text-indigo-700 font-normal">（3 分）</span>
+              </label>
+              <textarea id="p6_3_self" rows="2" class="w-full p-2.5 text-xs sm:text-sm border border-indigo-200 bg-indigo-50/20 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder=""></textarea>
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-1">
+            <button type="button" onclick="requestAIReview('陸、Ben 點心時間評論三層面與個人回答', 'p6_1_self', 18)" class="px-3 py-1 bg-sky-100 hover:bg-sky-200 text-sky-800 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+              <i class="fa-solid fa-robot text-sky-600"></i>
+              <span>請 AI 助教審閱本題作答</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 繳交區塊 -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 no-print">
+        <div>
+          <h4 class="font-bold text-slate-900 text-sm">準備好提交學習單了嗎？</h4>
+          <p class="text-xs text-slate-500 mt-0.5">送出後系統將即刻計算成績並同步儲存至 Cloudflare D1 資料庫，供您與老師檢視。</p>
+        </div>
+        <div class="flex items-center space-x-3 w-full sm:w-auto">
+          <button type="button" onclick="confirmResetWorksheet()" class="flex-1 sm:flex-none px-4 py-2.5 border border-slate-200 hover:bg-slate-100 text-slate-600 rounded-xl text-xs font-bold transition">
+            清空重填
+          </button>
+          <button type="button" onclick="submitWorksheet()" class="flex-1 sm:flex-none px-6 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white rounded-xl text-xs sm:text-sm font-black shadow-md shadow-sky-500/20 transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>正式繳交學習單</span>
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 學生登記身分 Modal -->
+  <div id="studentModal" onclick="if(event.target===this)closeStudentModal()" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden no-print">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-slate-900 text-sm flex items-center space-x-2">
+          <i class="fa-solid fa-id-card text-sky-600"></i>
+          <span>登記學生身分</span>
+        </h3>
+        <button id="closeStudentModal" type="button" onclick="closeStudentModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="studentForm" onsubmit="handleStudentFormSubmit(event)" class="mt-4 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">學號 (Student ID) *</label>
+          <input type="text" id="studentIdInput" required placeholder="例如：110022034" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">姓名 (Student Name) *</label>
+          <input type="text" id="studentNameInput" required placeholder="例如：王小明" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none">
+        </div>
+
+        <div class="pt-2 flex justify-end space-x-2">
+          <button type="button" id="cancelStudentModal" onclick="closeStudentModal()" class="px-4 py-2 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">取消</button>
+          <button type="submit" class="px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-semibold hover:bg-sky-700 transition">確定登記</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 🌟 即時成績回報單 Modal（送出後立刻給予成績並顯示學習程度） 🌟 -->
+  <div id="scoreReportModalOverlay" onclick="if(event.target===this)closeScoreReportModal()" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 hidden no-print">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto custom-scrollbar relative">
+      <button type="button" onclick="closeScoreReportModal()" class="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition" title="關閉成果單，回到作答頁面">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+      <div class="text-center pb-4 border-b border-slate-100">
+        <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-3xl mb-3 shadow-inner">
+          <i class="fa-solid fa-award"></i>
+        </div>
+        <span id="reportSyncBadge" class="text-xs font-bold uppercase tracking-wider text-sky-700 bg-sky-50 px-3 py-1 rounded-full border border-sky-200"><i class="fa-solid fa-spinner fa-spin mr-1"></i>正在連線 Cloudflare D1 資料庫同步儲存...</span>
+        <h3 class="font-extrabold text-slate-900 text-2xl mt-2">【Session 2-2 課堂學習單】跟隨孩子引導 · 成果成績單</h3>
+        <p id="scoreReportStudentMeta" class="text-xs text-slate-500 mt-1 font-medium"></p>
+      </div>
+
+      <!-- 總分展示卡 -->
+      <div class="my-6 p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-sky-950 to-indigo-950 text-white text-center shadow-lg relative overflow-hidden">
+        <div class="text-xs font-semibold text-slate-300 uppercase tracking-widest mb-1">今日課堂學習成果總分</div>
+        <div class="flex items-baseline justify-center space-x-2">
+          <span id="reportTotalScore" class="text-5xl sm:text-6xl font-black text-amber-400 font-mono tracking-tight">0</span>
+          <span class="text-slate-400 text-lg font-bold">/ 100 分</span>
+        </div>
+        <div id="reportGradeBadge" class="mt-3 inline-block px-3 py-1 rounded-full text-xs font-black bg-amber-400/20 text-amber-300 border border-amber-400/30">
+          臨床精熟
+        </div>
+      </div>
+
+      <!-- 各單元得分細項明細 (6大項) -->
+      <div class="space-y-2 text-xs">
+        <h4 class="font-bold text-slate-800 text-sm flex items-center space-x-1.5 mb-2">
+          <i class="fa-solid fa-chart-pie text-sky-600"></i>
+          <span>六大單元得分細項明細</span>
+        </h4>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex justify-between items-center">
+            <span class="font-semibold text-slate-700">壹、核心理念篇</span>
+            <span id="scorePart1Text" class="font-bold text-sky-700">0 / 15 分</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex justify-between items-center">
+            <span class="font-semibold text-slate-700">貳、Sean 與媽媽</span>
+            <span id="scorePart2Text" class="font-bold text-sky-700">0 / 15 分</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex justify-between items-center">
+            <span class="font-semibold text-slate-700">參、策略一：參與＆遊戲</span>
+            <span id="scorePart3Text" class="font-bold text-sky-700">0 / 20 分</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex justify-between items-center">
+            <span class="font-semibold text-slate-700">肆、策略二：模仿技巧</span>
+            <span id="scorePart4Text" class="font-bold text-sky-700">0 / 15 分</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex justify-between items-center">
+            <span class="font-semibold text-slate-700">伍、策略三：解讀／詮釋</span>
+            <span id="scorePart5Text" class="font-bold text-sky-700">0 / 17 分</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex justify-between items-center">
+            <span class="font-semibold text-slate-700">陸、策略四：表示意見／評論</span>
+            <span id="scorePart6Text" class="font-bold text-sky-700">0 / 18 分</span>
+          </div>
+        </div>
+
+        <div class="mt-4 p-4 rounded-xl bg-sky-50/70 border border-sky-200 text-sky-950">
+          <div class="font-bold mb-1 flex items-center space-x-1.5 text-sky-900">
+            <i class="fa-solid fa-graduation-cap text-sky-600"></i>
+            <span>今日學習程度解析與學習建議：</span>
+          </div>
+          <p id="reportTeacherFeedback" class="text-xs leading-relaxed text-sky-900/90"></p>
+        </div>
+
+        <!-- 老師詳答與評分參考標準摺疊卡 (對齊老師詳答版 Word) -->
+        <details class="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700">
+          <summary class="font-bold text-sky-800 cursor-pointer flex items-center justify-between">
+            <span><i class="fa-solid fa-book-open mr-1.5"></i>查看老師詳答版評分參考標準</span>
+            <span class="text-[11px] text-slate-400 font-normal">點擊展開 / 收合</span>
+          </summary>
+          <div class="mt-3 space-y-2.5 border-t border-slate-200 pt-2.5 leading-relaxed">
+            <p><strong>壹、核心理念（15分）：</strong>四大法寶包含「立即回應」、「參與＆遊戲」、「模仿」、「解讀／詮釋」、「表示意見／評論」、「貫徹到底／堅持到底」。OWL技巧為：O＝觀察、W＝等待、L＝傾聽。</p>
+            <div class="space-y-1">
+              <p><strong>貳、Sean 與媽媽影片互動詳解（15分，時長51秒，寫出任3種即得滿分）：</strong></p>
+              <p class="pl-2">・① <strong>模仿（5分）：</strong>聲音與表情模仿（Sean發出頑皮「Uh-oh!」，媽媽誇張托腮模仿回以「Uh-oh!」）；動作模仿（Sean伸臂指遠方，媽媽鏡像伸直手臂指同一方向）；遊戲動作模仿（Sean讓牛走動說「Walk!」，媽媽拿玩具牛走動模仿說「Walk! Can I walk?」）。</p>
+              <p class="pl-2">・② <strong>解讀／詮釋（5分）：</strong>Sean東看西看時，媽媽將其眼神解讀為找杯子說「Where's your drink?」；Sean拿乳牛沾杯口喝水說「Cow」，媽媽解讀為牛牛要喝水，擴展為「Cow drink!」。</p>
+              <p class="pl-2">・③ <strong>發表評論（5分）：</strong>Sean頑皮指向遠方時，媽媽以幽默口吻平行談話評論「There! Silly mama! Silly mama!」。</p>
+              <p class="pl-2">・④ <strong>富興趣地立即回應（5分）：</strong>Sean手放嘴邊做喝水動作說「Drink」，媽媽立刻熱情回應「Drink! Here you go!」並拿水壺倒水進黃色杯子中。</p>
+              <p class="pl-2">・⑤ <strong>問問題與參與遊戲（5分）：</strong>配合假裝遊戲（一起倒水喝水、拿玩具牛喝水與散步），以互動問句推動多達十幾回合輪替。</p>
+            </div>
+            <p><strong>參、Justin 與爸爸（20分）：</strong>(1) 蹲坐地毯平行視線（Face-to-face），以熱情投入的好玩伴姿態陪伴；(2) 平行遊戲拿自己的玩具卡車，順應孩子興趣倒沙埋車創造找車遊戲；(3) 使用「Where did it go?」、「Bury the car!」等生動短句與音效。</p>
+            <p><strong>肆、模仿三個層次（15分）：</strong>層次一：動作模仿（敲積木、拍手）；層次二：聲音模仿（牙牙學語、狀聲詞接龍）；層次三：字詞模仿（確認孩子說的詞彙並正確示範）。</p>
+            <div class="p-2.5 rounded-lg bg-amber-50/80 border border-amber-200 text-amber-900 space-y-1">
+              <p><strong>伍、解讀／詮釋（17分）：</strong></p>
+              <p>・Grace 吹泡泡（9分）：解讀眼神直視、伸手指、前傾與急切發聲；可擴展詞彙如「Blow 吹」、「Pop 破了」、「More 還要」。</p>
+              <p>・<strong>Zarina 參考解答與評分指標（8分）：</strong><br>
+                處於探索期的自閉症幼兒，其發聲或肢體往往尚未具備成熟的溝通意圖。但媽媽堅持假定孩子是有溝通意願的。<br>
+                ① <strong>建立自我意識（4 分）：</strong>孩子發現「原來當我發出這個聲音或動一下身體時，媽媽就會看我、回應我！」催化真正的主動溝通。<br>
+                ② <strong>使行為富有意義與意圖（4 分）：</strong>透過家長的詮釋，使孩童原本尚未成熟的行為或生理反應變得富有意義，轉化為具有主動溝通的意圖。
+              </p>
+            </div>
+            <div class="space-y-1">
+                      <p><strong>陸、Ben 與媽媽點心時間評論（18分）：</strong></p>
+                      <p class="pl-2">・(1) 描述大人自己正在做的事（6分）：媽媽倒果汁時說「Okay, let me give you some juice.」／「Some juice for Ben.」／「There you go.」（好的，讓媽媽倒點果汁給你／給 Ben 一些果汁）；學生自答以第一人稱自言自語簡短生動描述自己的動作。</p>
+                      <p class="pl-2">・(2) 描述環境中物品的特徵與當前狀態（6分）：媽媽指著杯子重複強調「Juice in a green cup, green cup.」（果汁在綠色的杯子裡，綠色的杯子——描述綠色杯子顏色特徵）；學生自答聚焦於物品顏色、容量、形狀或感官特徵。</p>
+                      <p class="pl-2">・(3) 描述孩子的內在感受與行為（6分）：媽媽體察並同理 Ben 的口渴感受與喝果汁行為說「Ben thirsty.」（Ben 口渴了）以及「Ben drink juice.」（Ben 喝果汁）；學生自答站在孩子視角標記情緒同理與內在感受。</p>
+                    </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-slate-100 flex justify-end space-x-3">
+        <button type="button" onclick="confirmResetWorksheet(true)" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-rotate-left"></i>
+          <span>重填學習單</span>
+        </button>
+        <button type="button" onclick="window.print()" class="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-print"></i>
+          <span>列印本成果</span>
+        </button>
+        <button type="button" id="closeScoreReportBtn" onclick="closeScoreReportModal()" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md">
+          <i class="fa-solid fa-check"></i>
+          <span>確定完成</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI 助教審閱 Modal -->
+  <div id="aiReviewModal" onclick="if(event.target===this)closeAiModal()" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden no-print">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 id="aiReviewModalTitle" class="font-bold text-slate-900 text-sm flex items-center space-x-2">
+          <i class="fa-solid fa-robot text-sky-600"></i>
+          <span>AI 臨床督導助教 智慧點評</span>
+        </h3>
+        <button id="closeAiReviewModal" type="button" onclick="closeAiModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="aiReviewContent" class="mt-4 text-xs sm:text-sm text-slate-700 leading-relaxed max-h-60 overflow-y-auto custom-scrollbar">
+        <!-- 動態載入 -->
+      </div>
+      <div class="mt-4 pt-3 border-t border-slate-100 flex justify-end">
+        <button type="button" id="ackAiReviewBtn" onclick="closeAiModal()" class="px-4 py-1.5 bg-sky-600 text-white rounded-xl text-xs font-semibold hover:bg-sky-700 transition">知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🌟 教師成績總覽後台 Modal (全班姓名、成績、大畫面作答詳情與超大課堂討論框) 🌟 -->
+  <div id="teacherDashboardModalOverlay" onclick="if(event.target===this)closeTeacherDashboardModal()" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 hidden no-print">
+    <div class="bg-white rounded-3xl max-w-6xl w-full p-5 sm:p-8 shadow-2xl border border-slate-100 max-h-[94vh] flex flex-col">
+      
+      <!-- 頂部標題列 -->
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center space-x-3">
+          <div class="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl shadow-sm">
+            <i class="fa-solid fa-chalkboard-user"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-slate-900 text-base sm:text-xl flex items-center space-x-2">
+              <span>【老師檢視成績】全班學生作答歷程與課堂討論</span>
+              <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                <i class="fa-solid fa-database mr-1"></i>Cloudflare D1 資料庫
+              </span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">點擊學生清單中的「檢視詳細作答」即可展開超大畫面作答區與即時討論回饋框。</p>
+          </div>
+        </div>
+        <button id="closeTeacherDashboardBtn" type="button" onclick="closeTeacherDashboardModal()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <!-- 統計指標卡片 -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-4">
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+          <div class="text-xs font-semibold text-slate-500">已參與繳交人數</div>
+          <div id="statStudentCount" class="text-2xl font-black text-slate-900 mt-1 font-mono">0 人</div>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-sky-50 border border-sky-200">
+          <div class="text-xs font-semibold text-sky-700">全班平均成績</div>
+          <div id="statAvgScore" class="text-2xl font-black text-sky-800 mt-1 font-mono">0 分</div>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200">
+          <div class="text-xs font-semibold text-emerald-700">最高成績</div>
+          <div id="statMaxScore" class="text-2xl font-black text-emerald-800 mt-1 font-mono">0 分</div>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200">
+          <div class="text-xs font-semibold text-amber-700">及格率 (≥60分)</div>
+          <div id="statPassRate" class="text-2xl font-black text-amber-800 mt-1 font-mono">0%</div>
+        </div>
+      </div>
+
+      <!-- 搜尋與操作工具列 -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-3">
+        <div class="relative w-full sm:w-80">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+          <input type="text" id="teacherSearchInput" placeholder="搜尋學生姓名或學號..." class="w-full pl-9 pr-3 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+        <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+          <button type="button" id="refreshSubmissionsBtn" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            <span>重新整理資料</span>
+          </button>
+          <button type="button" id="exportExcelBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-file-excel"></i>
+            <span>匯出全班 Excel 報表</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 滾動內容容器 (包含上方成績表格 + 下方超大作答展示區) -->
+      <div class="flex-1 overflow-y-auto custom-scrollbar space-y-6 pr-1">
+
+        <!-- 1. 全班學生姓名與成績一覽表 (清楚醒目) -->
+        <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+          <table class="w-full text-left text-xs sm:text-sm border-collapse">
+            <thead class="bg-slate-100/80 sticky top-0 border-b border-slate-200 text-slate-700 font-bold">
+              <tr>
+                <th class="p-3.5">學號</th>
+                <th class="p-3.5 text-base">學生姓名</th>
+                <th class="p-3.5 text-base text-center">學習單總分 (100)</th>
+                <th class="p-3.5 text-center hidden md:table-cell">壹·核心 (15)</th>
+                <th class="p-3.5 text-center hidden md:table-cell">貳·Sean (15)</th>
+                <th class="p-3.5 text-center hidden md:table-cell">參·Justin (20)</th>
+                <th class="p-3.5 text-center hidden md:table-cell">肆·模仿 (15)</th>
+                <th class="p-3.5 text-center hidden md:table-cell">伍·解讀 (17)</th>
+                <th class="p-3.5 text-center hidden md:table-cell">陸·評論 (18)</th>
+                <th class="p-3.5 text-slate-500 text-xs">繳交時間</th>
+                <th class="p-3.5 text-center">檢視與討論</th>
+              </tr>
+            </thead>
+            <tbody id="submissionsTableBody" class="divide-y divide-slate-100 text-slate-700 bg-white">
+              <tr>
+                <td colspan="11" class="p-8 text-center text-slate-400">
+                  <i class="fa-solid fa-spinner fa-spin mr-1"></i> 正在連線 Cloudflare D1 載入全班資料...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 🌟 2. 檢視作答的下方呈現學生答案的超大區域（空格夠大、畫面夠大、回應欄框夠大） 🌟 -->
+        <div id="studentDetailPanel" class="p-6 sm:p-8 rounded-3xl bg-slate-50 border-2 border-sky-300 shadow-xl hidden">
+          <div class="flex items-center justify-between pb-3 border-b-2 border-slate-200">
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span id="detailStudentHeader" class="font-black text-slate-900 text-lg sm:text-xl"></span>
+            </div>
+            <button type="button" onclick="document.getElementById('studentDetailPanel').classList.add('hidden')" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition flex items-center space-x-1">
+              <i class="fa-solid fa-xmark"></i>
+              <span>關閉詳情檢視</span>
+            </button>
+          </div>
+          
+          <div id="detailStudentContent" class="mt-5 space-y-6 text-slate-700">
+            <!-- 動態渲染各題目作答內容與超大回應討論框 -->
+          </div>
+        </div>
+
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center text-[11px] text-slate-400">
+        <span>Cloudflare D1 資料庫：<code>autism-comm-disorders-db</code> (表格: <code>session3_submissions</code>)</span>
+        <button type="button" id="clearAllDbDataBtn" class="text-rose-600 hover:text-rose-800 transition font-semibold">
+          <i class="fa-regular fa-trash-can mr-1"></i>重置/清空所有測試紀錄
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast 提示 -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl text-xs sm:text-sm flex items-center space-x-2 transform translate-y-16 opacity-0 transition-all duration-300 pointer-events-none">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+    <span id="toastMsg">訊息內容</span>
+  </div>
+
+  <!-- JavaScript 核心邏輯 -->
+  <script>
+    let currentStudent = { id: '', name: '' };
+    let allSubmissionsData = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initStudent();
+      setupWordCountListeners();
+      loadDraft();
+      setupAutoSave();
+      bindEvents();
+    });
+
+    function showToast(msg, isSuccess = true) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      const toastIcon = document.getElementById('toastIcon');
+      toastMsg.innerText = msg;
+      toastIcon.className = isSuccess ? 'fa-solid fa-circle-check text-emerald-400' : 'fa-solid fa-circle-exclamation text-amber-400';
+      toast.classList.remove('translate-y-16', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-16', 'opacity-0');
+      }, 2800);
+    }
+
+    function initStudent() {
+      const saved = localStorage.getItem('autism_student_profile');
+      if (saved) {
+        try {
+          currentStudent = JSON.parse(saved);
+        } catch (e) {}
+      }
+      updateStudentUI();
+    }
+
+    function updateStudentUI() {
+      const badge = document.getElementById('studentProfileText');
+      const headerBadge = document.getElementById('headerStudentBadge');
+      const bannerTitle = document.getElementById('studentBannerTitle');
+      const statusBadge = document.getElementById('studentBannerStatusBadge');
+      const directId = document.getElementById('directStudentId');
+      const directName = document.getElementById('directStudentName');
+
+      if (currentStudent.id && currentStudent.name) {
+        const idStr = String(currentStudent.id);
+        const nameStr = String(currentStudent.name);
+        badge.innerText = `${nameStr} (${idStr})`;
+        headerBadge.innerText = `${nameStr} (${idStr})`;
+        if (bannerTitle) bannerTitle.innerText = `已確認登記：${nameStr}（學號：${idStr}）`;
+        if (statusBadge) {
+          statusBadge.className = 'text-[11px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
+          statusBadge.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i>已就緒，交卷直通 D1';
+        }
+        if (directId && !directId.value) directId.value = idStr;
+        if (directName && !directName.value) directName.value = nameStr;
+      } else {
+        badge.innerText = '登記學號姓名';
+        headerBadge.innerText = '訪客同學';
+        if (bannerTitle) bannerTitle.innerText = '課堂學生身分登記';
+        if (statusBadge) {
+          statusBadge.className = 'text-[11px] px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-300';
+          statusBadge.innerText = '尚未確認登記';
+        }
+      }
+    }
+
+    function setupWordCountListeners() {
+      const el = document.getElementById('p2_essay');
+      const cnt = document.getElementById('p2_essay_count');
+      if (el && cnt) {
+        el.addEventListener('input', () => {
+          cnt.innerText = `已輸入 ${el.value.trim().length} 字`;
+        });
+      }
+    }
+
+    function saveDraft(manual = false) {
+      const answers = collectAllAnswers();
+      localStorage.setItem('session3_draft_answers_v2', JSON.stringify(answers));
+      if (manual) showToast('學習單作答草稿已儲存至本機！');
+    }
+
+    function loadDraft() {
+      const saved = localStorage.getItem('session3_draft_answers_v2');
+      if (!saved) return;
+      try {
+        const answers = JSON.parse(saved);
+        // 回填填空
+        document.querySelectorAll('.fill-input').forEach(input => {
+          if (answers[input.id] !== undefined) input.value = answers[input.id];
+        });
+        // 回填文字框
+        ['p2_essay', 'p3_essay1', 'p3_essay2', 'p3_essay3',
+         'p4_actions', 'p4_sounds', 'p4_words',
+         'p5_grace1', 'p5_grace2', 'p5_zarina',
+         'p6_1_mom', 'p6_1_self', 'p6_2_mom', 'p6_2_self', 'p6_3_mom', 'p6_3_self',
+         'p6_doing', 'p6_object', 'p6_feeling'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el && answers[id] !== undefined) el.value = answers[id];
+        });
+        document.querySelectorAll('textarea').forEach(t => t.dispatchEvent(new Event('input')));
+      } catch (e) {
+        console.error('Failed to load draft:', e);
+      }
+    }
+
+    function confirmResetWorksheet(skipConfirm = false) {
+      if (skipConfirm || confirm('確定要清空當前學習單的所有填答，重新開始測驗嗎？')) {
+        localStorage.removeItem('session3_draft_answers_v2');
+        document.querySelectorAll('.fill-input').forEach(i => {
+          i.value = '';
+          i.classList.remove('correct', 'incorrect');
+        });
+        document.querySelectorAll('textarea').forEach(t => {
+          t.value = '';
+          t.dispatchEvent(new Event('input'));
+        });
+        document.getElementById('scoreReportModalOverlay')?.classList.add('hidden');
+        document.getElementById('submittedNoticeBanner')?.classList.add('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        showToast('學習單已清空重設！您可重新開始填寫。');
+      }
+    }
+
+    // 🌟 彈窗通用控制函數 (供 HTML 內聯 onclick 與 JS 雙重綁定) 🌟
+    function closeScoreReportModal() {
+      const modal = document.getElementById('scoreReportModalOverlay');
+      if (modal) modal.classList.add('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showToast('已關閉成績單，返回學習單畫面！您可檢閱作答內容。');
+    }
+
+    function reopenScoreReportModal() {
+      const modal = document.getElementById('scoreReportModalOverlay');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeTeacherDashboardModal() {
+      const modal = document.getElementById('teacherDashboardModalOverlay');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function closeAiModal() {
+      const modal = document.getElementById('aiReviewModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function openStudentModal() {
+      const modal = document.getElementById('studentModal');
+      if (modal) {
+        const idInput = document.getElementById('studentIdInput');
+        const nameInput = document.getElementById('studentNameInput');
+        if (idInput) idInput.value = currentStudent.id || '';
+        if (nameInput) nameInput.value = currentStudent.name || '';
+        modal.classList.remove('hidden');
+      }
+    }
+
+    function closeStudentModal() {
+      const modal = document.getElementById('studentModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function confirmDirectStudent() {
+      const idInput = document.getElementById('directStudentId');
+      const nameInput = document.getElementById('directStudentName');
+      const id = String(idInput?.value || '').trim();
+      const name = String(nameInput?.value || '').trim();
+      if (!id || !name) {
+        showToast('請同時填寫學號與姓名！', false);
+        return;
+      }
+      currentStudent = { id, name };
+      localStorage.setItem('autism_student_profile', JSON.stringify(currentStudent));
+      updateStudentUI();
+      showToast(`已成功登記為：${name} (${id})，交卷將自動上傳 D1！`);
+    }
+
+    function handleStudentFormSubmit(e) {
+      if (e) e.preventDefault();
+      const idInput = document.getElementById('studentIdInput');
+      const nameInput = document.getElementById('studentNameInput');
+      const id = String(idInput?.value || '').trim();
+      const name = String(nameInput?.value || '').trim();
+      if (id && name) {
+        currentStudent = { id, name };
+        localStorage.setItem('autism_student_profile', JSON.stringify(currentStudent));
+        updateStudentUI();
+        closeStudentModal();
+        showToast(`已成功登記為：${name} (${id})`);
+        if (pendingSubmitAfterRegister) {
+          pendingSubmitAfterRegister = false;
+          submitWorksheet();
+        }
+      }
+    }
+
+    function collectAllAnswers() {
+      const data = {};
+      document.querySelectorAll('.fill-input').forEach(input => {
+        data[input.id] = input.value.trim();
+      });
+      ['p2_essay', 'p3_essay1', 'p3_essay2', 'p3_essay3',
+       'p4_actions', 'p4_sounds', 'p4_words',
+       'p5_grace1', 'p5_grace2', 'p5_zarina',
+       'p6_1_mom', 'p6_1_self', 'p6_2_mom', 'p6_2_self', 'p6_3_mom', 'p6_3_self'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) data[id] = el.value.trim();
+      });
+      return data;
+    }
+
+    function checkFillMatch(userVal, dataAns) {
+      if (!userVal) return false;
+      const cleanUser = userVal.toLowerCase().replace(/[\s_，。、！!\-]/g, '');
+      const validOptions = dataAns.split('|').map(s => s.toLowerCase().replace(/[\s_，。、！!\-]/g, ''));
+      return validOptions.some(opt => cleanUser.includes(opt) || opt.includes(cleanUser));
+    }
+
+    // ==========================================
+    // 總分計算邏輯（100 分總分制，6大單元）
+    // ==========================================
+    function calculateTotalScore() {
+      // ==========================================
+      // 壹、核心理念篇 (滿分 15 分)
+      // ==========================================
+      let p1 = 0;
+      // 1. 四大法寶 6 格 (各 1.5 分 = 9分)
+      ['p1_blank1', 'p1_blank2', 'p1_blank3', 'p1_blank4', 'p1_blank5', 'p1_blank6'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && checkFillMatch(el.value, el.dataset.ans)) {
+          p1 += 1.5;
+          el.classList.add('correct');
+          el.classList.remove('incorrect');
+        } else if (el) {
+          el.classList.add('incorrect');
+          el.classList.remove('correct');
+        }
+      });
+      // 2. OWL 3 格 (各 2 分 = 6分)
+      ['p1_blank7', 'p1_blank8', 'p1_blank9'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && checkFillMatch(el.value, el.dataset.ans)) {
+          p1 += 2.0;
+          el.classList.add('correct');
+          el.classList.remove('incorrect');
+        } else if (el) {
+          el.classList.add('incorrect');
+          el.classList.remove('correct');
+        }
+      });
+
+      // ==========================================
+      // 貳、Sean 與媽媽 (滿分 15 分，依真實影片 itttr2-05 精準核分)
+      // 評分標準：寫出任三種具體跟隨技巧及其對應行為 (每種 5 分 = 技巧名稱 2.5 + 真實行為 2.5，滿分 15 分)
+      // ==========================================
+      let p2 = 0;
+      const p2_text = (document.getElementById('p2_essay')?.value || '').trim();
+      if (p2_text.length >= 6) {
+        const p2_lower = p2_text.toLowerCase();
+        
+        // 技巧 1: 模仿 (名稱 + 行為: uh-oh, 表情, 托腮, 指, there, walk, 走, 散步, 動作)
+        let t1_name = p2_lower.includes('模仿') || p2_lower.includes('imitate') || p2_lower.includes('跟著做') || p2_lower.includes('重複') || p2_lower.includes('鏡像');
+        let t1_behavior = p2_lower.includes('uh-oh') || p2_lower.includes('oh-oh') || p2_lower.includes('表情') || p2_lower.includes('托腮') || p2_lower.includes('指') || p2_lower.includes('there') || p2_lower.includes('walk') || p2_lower.includes('走') || p2_lower.includes('散步') || p2_lower.includes('動作');
+        let t1_score = (t1_name && t1_behavior) ? 5.0 : ((t1_name || t1_behavior) ? 2.5 : 0);
+
+        // 技巧 2: 解讀/詮釋 (名稱 + 行為: 找水杯 where, drink, 牛喝水 cow drink, 渴, 杯)
+        let t2_name = p2_lower.includes('解讀') || p2_lower.includes('詮釋') || p2_lower.includes('interpret') || p2_lower.includes('替他說') || p2_lower.includes('代說') || p2_lower.includes('意圖') || p2_lower.includes('擴展');
+        let t2_behavior = p2_lower.includes('水') || p2_lower.includes('water') || p2_lower.includes('drink') || p2_lower.includes('找') || p2_lower.includes('where') || p2_lower.includes('cow drink') || p2_lower.includes('牛喝水') || p2_lower.includes('杯') || p2_lower.includes('倒水') || p2_lower.includes('喝水') || p2_lower.includes('牛');
+        let t2_score = (t2_name && t2_behavior) ? 5.0 : ((t2_name || t2_behavior) ? 2.5 : 0);
+
+        // 技巧 3: 評論/表示意見 (名稱 + 行為: silly, silly mama, 傻, 幽默, 平行談話, there)
+        let t3_name = p2_lower.includes('評論') || p2_lower.includes('comment') || p2_lower.includes('表示意見') || p2_lower.includes('意見') || p2_lower.includes('平行談話');
+        let t3_behavior = p2_lower.includes('silly') || p2_lower.includes('傻') || p2_lower.includes('幽默') || p2_lower.includes('mama') || p2_lower.includes('there');
+        let t3_score = (t3_name && t3_behavior) ? 5.0 : ((t3_name || t3_behavior) ? 2.5 : 0);
+
+        // 技巧 4: 立即回應 / 適當跟隨 (名稱 + 行為: here you go, drink, 倒水, 水壺, 給杯子, 前傾)
+        let t4_name = p2_lower.includes('立即回應') || p2_lower.includes('馬上回應') || p2_lower.includes('跟隨結果') || p2_lower.includes('follow through') || p2_lower.includes('respond');
+        let t4_behavior = p2_lower.includes('here you go') || p2_lower.includes('倒水') || p2_lower.includes('水壺') || p2_lower.includes('杯') || p2_lower.includes('前傾') || p2_lower.includes('熱情');
+        let t4_score = (t4_name && t4_behavior) ? 5.0 : ((t4_name || t4_behavior) ? 2.5 : 0);
+
+        // 技巧 5: 參與遊戲 / 問問題 (名稱 + 行為: 假裝, 餵牛, 一起玩, can i walk, 輪替)
+        let t5_name = p2_lower.includes('參與') || p2_lower.includes('遊戲') || p2_lower.includes('play') || p2_lower.includes('問問題') || p2_lower.includes('ask') || p2_lower.includes('問題');
+        let t5_behavior = p2_lower.includes('假裝') || p2_lower.includes('pretend') || p2_lower.includes('餵') || p2_lower.includes('walk') || p2_lower.includes('走') || p2_lower.includes('輪替') || p2_lower.includes('一起');
+        let t5_score = (t5_name && t5_behavior) ? 5.0 : ((t5_name || t5_behavior) ? 2.5 : 0);
+
+        // 取最高得分的三種技巧結算（滿分 15 分）
+        const scores_list = [t1_score, t2_score, t3_score, t4_score, t5_score].sort((a, b) => b - a);
+        p2 = scores_list[0] + scores_list[1] + scores_list[2];
+        if (p2 > 15) p2 = 15;
+        if (p2 === 0 && p2_text.length >= 35) {
+          p2 = 6.0;
+        }
+      }
+
+      // ==========================================
+      // 參、Justin 與爸爸 (滿分 20 分：6 + 7 + 7)
+      // ==========================================
+      let p3 = 0;
+      // (1) 爸爸的位置與態度 (6分: 姿勢 3 分 + 態度 3 分)
+      const p3_1 = (document.getElementById('p3_essay1')?.value || '').trim();
+      if (p3_1.length >= 5) {
+        const p3_1_lower = p3_1.toLowerCase();
+        let s_pos = (p3_1_lower.includes('視線') || p3_1_lower.includes('平行') || p3_1_lower.includes('等高') || p3_1_lower.includes('面對面') || p3_1_lower.includes('蹲') || p3_1_lower.includes('坐') || p3_1_lower.includes('趴') || p3_1_lower.includes('地毯') || p3_1_lower.includes('face') || p3_1_lower.includes('eye level')) ? 3.0 : 0;
+        let s_att = (p3_1_lower.includes('投入') || p3_1_lower.includes('放鬆') || p3_1_lower.includes('玩伴') || p3_1_lower.includes('熱情') || p3_1_lower.includes('真誠') || p3_1_lower.includes('微笑') || p3_1_lower.includes('不主導') || p3_1_lower.includes('不強迫') || p3_1_lower.includes('好奇') || p3_1_lower.includes('playful') || p3_1_lower.includes('enthusiastic')) ? 3.0 : 0;
+        p3 += (s_pos + s_att);
+        if (s_pos + s_att === 0 && p3_1.length >= 15) p3 += 3.0;
+      }
+
+      // (2) 爸爸如何使用玩具 (7分: 不強奪 3 分 + 平行遊戲順應興趣 4 分)
+      const p3_2 = (document.getElementById('p3_essay2')?.value || '').trim();
+      if (p3_2.length >= 5) {
+        const p3_2_lower = p3_2.toLowerCase();
+        let s_not_grab = (p3_2_lower.includes('不搶') || p3_2_lower.includes('沒有搶') || p3_2_lower.includes('沒搶') || p3_2_lower.includes('不硬拿') || p3_2_lower.includes('沒有拿走') || p3_2_lower.includes('未搶奪') || p3_2_lower.includes('不強奪') || p3_2_lower.includes('不強迫') || p3_2_lower.includes('沒有強行')) ? 3.0 : 0;
+        let s_parallel = (p3_2_lower.includes('另一個') || p3_2_lower.includes('另一台') || p3_2_lower.includes('平行') || p3_2_lower.includes('推土機') || p3_2_lower.includes('卡車') || p3_2_lower.includes('車') || p3_2_lower.includes('埋') || p3_2_lower.includes('倒沙') || p3_2_lower.includes('挖沙') || p3_2_lower.includes('bury') || p3_2_lower.includes('自己拿') || p3_2_lower.includes('在旁邊玩')) ? 4.0 : 0;
+        p3 += (s_not_grab + s_parallel);
+        if (s_not_grab + s_parallel === 0 && p3_2.length >= 15) p3 += 3.5;
+      }
+
+      // (3) 爸爸使用的生動聲音與字詞 (7分: 2句生動語句 5 分 + 特色分析 2 分)
+      const p3_3 = (document.getElementById('p3_essay3')?.value || '').trim();
+      if (p3_3.length >= 5) {
+        const p3_3_lower = p3_3.toLowerCase();
+        let quotesCount = 0;
+        if (p3_3_lower.includes('bury') || p3_3_lower.includes('埋')) quotesCount++;
+        if (p3_3_lower.includes('dig') || p3_3_lower.includes('挖')) quotesCount++;
+        if (p3_3_lower.includes('uh-oh') || p3_3_lower.includes('哎呀') || p3_3_lower.includes('where') || p3_3_lower.includes('去哪')) quotesCount++;
+        if (p3_3_lower.includes('vroom') || p3_3_lower.includes('轟隆') || p3_3_lower.includes('truck') || p3_3_lower.includes('車')) quotesCount++;
+        if (p3_3_lower.includes('under the sand') || p3_3_lower.includes('在沙子下')) quotesCount++;
+
+        let s_quotes = quotesCount >= 2 ? 5.0 : (quotesCount === 1 || p3_3.length >= 12 ? 2.5 : 0);
+        let s_feature = (p3_3_lower.includes('短句') || p3_3_lower.includes('音調') || p3_3_lower.includes('誇張') || p3_3_lower.includes('起伏') || p3_3_lower.includes('狀聲詞') || p3_3_lower.includes('重複') || p3_3_lower.includes('生動') || p3_3_lower.includes('簡短')) ? 2.0 : 0;
+        p3 += (s_quotes + s_feature);
+        if (s_quotes + s_feature === 0 && p3_3.length >= 15) p3 += 3.5;
+      }
+
+      // ==========================================
+      // 肆、策略二：模仿技巧的三個層次 (滿分 15 分：各 5 分 = 名稱 3 分 + 說明/舉例 2 分)
+      // ==========================================
+      let p4 = 0;
+      // 層次一：動作 (Actions)
+      const p4_1 = (document.getElementById('p4_actions')?.value || '').trim();
+      if (p4_1.length >= 2) {
+        const l1 = p4_1.toLowerCase();
+        let hasName = l1.includes('動作') || l1.includes('action') || l1.includes('肢體');
+        let hasDesc = l1.includes('敲') || l1.includes('拍') || l1.includes('玩具') || l1.includes('積木') || l1.includes('操作') || l1.includes('看見') || p4_1.length >= 8;
+        if (hasName && hasDesc) p4 += 5.0;
+        else if (hasName) p4 += 3.0;
+        else if (p4_1.length >= 4) p4 += 2.0;
+      }
+
+      // 層次二：聲音 (Sounds)
+      const p4_2 = (document.getElementById('p4_sounds')?.value || '').trim();
+      if (p4_2.length >= 2) {
+        const l2 = p4_2.toLowerCase();
+        let hasName = l2.includes('聲音') || l2.includes('sound') || l2.includes('語音') || l2.includes('發聲');
+        let hasDesc = l2.includes('笑聲') || l2.includes('牙牙學語') || l2.includes('啊') || l2.includes('嘟嘟') || l2.includes('音調') || l2.includes('輪替') || l2.includes('音效') || p4_2.length >= 8;
+        if (hasName && hasDesc) p4 += 5.0;
+        else if (hasName) p4 += 3.0;
+        else if (p4_2.length >= 4) p4 += 2.0;
+      }
+
+      // 層次三：字詞 (Words)
+      const p4_3 = (document.getElementById('p4_words')?.value || '').trim();
+      if (p4_3.length >= 2) {
+        const l3 = p4_3.toLowerCase();
+        let hasName = l3.includes('字') || l3.includes('詞') || l3.includes('word') || l3.includes('單字') || l3.includes('語言');
+        let hasDesc = l3.includes('狗狗') || l3.includes('汪汪') || l3.includes('重複') || l3.includes('確認') || l3.includes('聽懂') || l3.includes('說的話') || p4_3.length >= 8;
+        if (hasName && hasDesc) p4 += 5.0;
+        else if (hasName) p4 += 3.0;
+        else if (p4_3.length >= 4) p4 += 2.0;
+      }
+
+      // ==========================================
+      // 伍、策略三：解讀／詮釋 Grace 與 Zarina (滿分 17 分：4.5 + 4.5 + 8)
+      // ==========================================
+      let p5 = 0;
+      // 1-(1) Grace 非語言線索 (4.5分: 線索 2.5 分 + 口語轉譯 2.0 分)
+      const p5_g1 = (document.getElementById('p5_grace1')?.value || '').trim();
+      if (p5_g1.length >= 4) {
+        const g1 = p5_g1.toLowerCase();
+        let s_clue = (g1.includes('身體') || g1.includes('前傾') || g1.includes('眼神') || g1.includes('直視') || g1.includes('看') || g1.includes('伸手') || g1.includes('小手') || g1.includes('抓') || g1.includes('發聲') || g1.includes('eh') || g1.includes('聲音') || g1.includes('線索')) ? 2.5 : 0;
+        let s_interpret = (g1.includes('想要') || g1.includes('還要') || g1.includes('泡泡') || g1.includes('更多') || g1.includes('more') || g1.includes('bubbles') || g1.includes('代說') || g1.includes('替他說')) ? 2.0 : 0;
+        p5 += (s_clue + s_interpret);
+        if (s_clue + s_interpret === 0 && p5_g1.length >= 10) p5 += 2.0;
+      }
+
+      // 1-(2) Grace 擴展核心詞彙 (4.5分: 2個以上詞彙得 4.5 分，1個得 2.5 分)
+      const p5_g2 = (document.getElementById('p5_grace2')?.value || '').trim();
+      if (p5_g2.length >= 2) {
+        const g2 = p5_g2.toLowerCase();
+        let wordsHits = 0;
+        if (g2.includes('blow') || g2.includes('吹')) wordsHits++;
+        if (g2.includes('pop') || g2.includes('破') || g2.includes('啵')) wordsHits++;
+        if (g2.includes('up') || g2.includes('飛') || g2.includes('高')) wordsHits++;
+        if (g2.includes('big') || g2.includes('大')) wordsHits++;
+        if (g2.includes('more') || g2.includes('還要') || g2.includes('更多')) wordsHits++;
+        if (g2.includes('open') || g2.includes('開')) wordsHits++;
+        if (wordsHits >= 2) p5 += 4.5;
+        else if (wordsHits === 1 || p5_g2.length >= 6) p5 += 2.5;
+      }
+
+      // 2. Zarina 與媽媽 (8分: 自我意識 4 分 + 富有意義意圖 4 分)
+      const p5_z = (document.getElementById('p5_zarina')?.value || '').trim();
+      if (p5_z.length >= 5) {
+        const z = p5_z.toLowerCase();
+        let s_self = (z.includes('自我意識') || z.includes('自己') || z.includes('因果') || z.includes('發現') || z.includes('主動溝通') || z.includes('我發出聲音') || z.includes('媽媽會看') || z.includes('自我')) ? 4.0 : 0;
+        let s_intent = (z.includes('意義') || z.includes('意圖') || z.includes('詮釋') || z.includes('解讀') || z.includes('假定') || z.includes('賦予') || z.includes('無意識轉化') || z.includes('訊息傳遞') || z.includes('溝通意圖')) ? 4.0 : 0;
+        p5 += (s_self + s_intent);
+        if (s_self + s_intent === 0 && p5_z.length >= 20) p5 += 4.0;
+      }
+
+      // ==========================================
+      // 陸、策略四：表示意見／評論 Ben 與媽媽 (滿分 18 分：3小題各 6 分 = 媽媽說的話 3 分 + 學生自我表達 3 分)
+      // 🌟 嚴格檢核：若未填寫「學生自我表達」，絕不給滿分！🌟
+      // ==========================================
+      let p6 = 0;
+
+      // (1) 描述大人自己正在做的事 (6分)
+      // 影片真實對話："Okay, let me give you some juice." / "Some juice for Ben." / "There you go."
+      const p6_1_m = (document.getElementById('p6_1_mom')?.value || document.getElementById('p6_doing')?.value || '').trim();
+      const p6_1_s = (document.getElementById('p6_1_self')?.value || '').trim();
+      let p6_1_score = 0;
+      // ① 媽媽說的話 (3分): 檢核 juice, give, some juice, pour, 果汁, 給, 倒, ben
+      if (p6_1_m.length >= 2) {
+        const m1 = p6_1_m.toLowerCase();
+        if (m1.includes('juice') || m1.includes('give') || m1.includes('pour') || m1.includes('there you go') || m1.includes('果汁') || m1.includes('給') || m1.includes('倒') || m1.includes('ben')) {
+          p6_1_score += 3.0;
+        } else if (p6_1_m.length >= 6) {
+          p6_1_score += 1.5;
+        }
+      }
+      // ② 學生自我表達 (3分) - 嚴格判定！空白直接 0 分
+      if (p6_1_s.length >= 5) {
+        p6_1_score += 3.0;
+      } else if (p6_1_s.length >= 2) {
+        p6_1_score += 1.5;
+      }
+      p6 += p6_1_score;
+
+      // (2) 描述環境中物品的特徵與當前狀態 (6分)
+      // 影片真實對話："Juice in a green cup, green cup." (重複強調綠色杯子 green cup)
+      const p6_2_m = (document.getElementById('p6_2_mom')?.value || document.getElementById('p6_object')?.value || '').trim();
+      const p6_2_s = (document.getElementById('p6_2_self')?.value || '').trim();
+      let p6_2_score = 0;
+      // ① 媽媽說的話 (3分): 檢核 green, cup, 綠, 杯, green cup
+      if (p6_2_m.length >= 2) {
+        const m2 = p6_2_m.toLowerCase();
+        if (m2.includes('green') || m2.includes('cup') || m2.includes('綠') || m2.includes('杯') || m2.includes('juice') || m2.includes('果汁')) {
+          p6_2_score += 3.0;
+        } else if (p6_2_m.length >= 6) {
+          p6_2_score += 1.5;
+        }
+      }
+      // ② 學生自我表達 (3分) - 嚴格判定！空白直接 0 分
+      if (p6_2_s.length >= 5) {
+        p6_2_score += 3.0;
+      } else if (p6_2_s.length >= 2) {
+        p6_2_score += 1.5;
+      }
+      p6 += p6_2_score;
+
+      // (3) 描述孩子的內在感受與行為 (6分)
+      // 影片真實對話："Ben thirsty." (口渴感受) / "Ben drink juice." (喝果汁行為)
+      const p6_3_m = (document.getElementById('p6_3_mom')?.value || document.getElementById('p6_feeling')?.value || '').trim();
+      const p6_3_s = (document.getElementById('p6_3_self')?.value || '').trim();
+      let p6_3_score = 0;
+      // ① 媽媽說的話 (3分): 檢核 thirsty, drink, 渴, 喝, ben
+      if (p6_3_m.length >= 2) {
+        const m3 = p6_3_m.toLowerCase();
+        if (m3.includes('thirsty') || m3.includes('drink') || m3.includes('渴') || m3.includes('喝') || m3.includes('ben')) {
+          p6_3_score += 3.0;
+        } else if (p6_3_m.length >= 6) {
+          p6_3_score += 1.5;
+        }
+      }
+      // ② 學生自我表達 (3分) - 嚴格判定！空白直接 0 分
+      if (p6_3_s.length >= 5) {
+        p6_3_score += 3.0;
+      } else if (p6_3_s.length >= 2) {
+        p6_3_score += 1.5;
+      }
+      p6 += p6_3_score;
+
+      const total = Math.min(100, Math.round(p1 + p2 + p3 + p4 + p5 + p6));
+
+      return {
+        total,
+        p1: Math.min(15, Math.round(p1 * 10) / 10),
+        p2: Math.min(15, Math.round(p2 * 10) / 10),
+        p3: Math.min(20, Math.round(p3 * 10) / 10),
+        p4: Math.min(15, Math.round(p4 * 10) / 10),
+        p5: Math.min(17, Math.round(p5 * 10) / 10),
+        p6: Math.min(18, Math.round(p6 * 10) / 10)
+      };
+    }
+
+    // 🌟 學生送出學習單：立刻給予成績並顯示學習程度 + 同步寫入 D1 資料庫 🌟
+    let pendingSubmitAfterRegister = false;
+
+    async function submitWorksheet() {
+      // 優先檢查頁面上方直接輸入框
+      const directId = (document.getElementById('directStudentId')?.value || '').trim();
+      const directName = (document.getElementById('directStudentName')?.value || '').trim();
+      if (directId && directName) {
+        currentStudent = { id: String(directId), name: String(directName) };
+        localStorage.setItem('autism_student_profile', JSON.stringify(currentStudent));
+        updateStudentUI();
+      }
+
+      if (!currentStudent.id || !currentStudent.name) {
+        pendingSubmitAfterRegister = true;
+        document.getElementById('studentIdInput').value = directId || '';
+        document.getElementById('studentNameInput').value = directName || '';
+        document.getElementById('studentModal').classList.remove('hidden');
+        showToast('請先輸入學號與姓名，登記後將自動送出！', false);
+        return;
+      }
+
+      // 1. 立刻結算成績
+      const scores = calculateTotalScore();
+      const allAnswers = collectAllAnswers();
+
+      // 2. 即時渲染成績成果單
+      document.getElementById('scoreReportStudentMeta').innerText = `作答學生：${currentStudent.name}（學號：${currentStudent.id}） · 提交時間：${new Date().toLocaleString('zh-TW')}`;
+      document.getElementById('reportTotalScore').innerText = scores.total;
+      document.getElementById('scorePart1Text').innerText = `${scores.p1} / 15 分`;
+      document.getElementById('scorePart2Text').innerText = `${scores.p2} / 15 分`;
+      document.getElementById('scorePart3Text').innerText = `${scores.p3} / 20 分`;
+      document.getElementById('scorePart4Text').innerText = `${scores.p4} / 15 分`;
+      document.getElementById('scorePart5Text').innerText = `${scores.p5} / 17 分`;
+      document.getElementById('scorePart6Text').innerText = `${scores.p6} / 18 分`;
+
+      // 3. 清楚給予學習程度評語
+      let feedback = '';
+      if (scores.total >= 90) {
+        document.getElementById('reportGradeBadge').innerText = '臨床特優・精熟實踐';
+        feedback = '太棒了！您對四大核心策略（參與＆遊戲、模仿、解讀、評論）掌握極為深入，能精準洞察父母在遊戲中如何放下身段、像孩子一樣玩，並在平行談話中示範目標字詞！';
+      } else if (scores.total >= 75) {
+        document.getElementById('reportGradeBadge').innerText = '良好・觀念清晰';
+        feedback = '表現良好！已能清楚辨識各策略的實施要領。建議多加體察「賦予意圖」使幼兒建立自我意識的心理機制，以及在評論中多描述孩子的感受而非下令。';
+      } else if (scores.total >= 60) {
+        document.getElementById('reportGradeBadge').innerText = '及格・具備基礎';
+        feedback = '已具備基本概念！建議複習「參與＆遊戲」中大人如何以平行遊戲引導，以及在解讀技巧中如何將孩子的發聲線索擴展為多個核心詞彙。';
+      } else {
+        document.getElementById('reportGradeBadge').innerText = '建議重新複習影片';
+        feedback = '已完成繳交！建議重新播放沙坑與吹泡泡影片，仔細觀察大人如何蹲低身體保持平行視線，並練習用簡短字詞替孩子說出心聲。';
+      }
+      document.getElementById('reportTeacherFeedback').innerText = feedback;
+
+      // 4. 設定同步中狀態並彈出成果單
+      const syncBadge = document.getElementById('reportSyncBadge');
+      if (syncBadge) {
+        syncBadge.className = 'text-xs font-bold uppercase tracking-wider text-sky-700 bg-sky-50 px-3 py-1 rounded-full border border-sky-200';
+        syncBadge.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>正在同步記錄至 Cloudflare D1 資料庫...';
+      }
+      document.getElementById('scoreReportModalOverlay').classList.remove('hidden');
+
+      // 5. 即刻同步記錄至 Cloudflare D1 資料庫 (強制發送，確保連線)
+      try {
+        const payload = {
+          student_id: String(currentStudent.id).trim(),
+          student_name: String(currentStudent.name).trim(),
+          total_score: scores.total,
+          score_part1: scores.p1,
+          score_part2: scores.p2,
+          score_part3: scores.p3,
+          score_part4: scores.p4,
+          score_part5: scores.p5,
+          score_part6: scores.p6,
+          answers_json: allAnswers,
+          ai_feedback: feedback
+        };
+
+        const res = await fetch('/api/session3/submit', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
+          },
+          body: JSON.stringify(payload)
+        });
+        const resData = await res.json();
+        if (resData.success) {
+          if (syncBadge) {
+            syncBadge.className = 'text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200';
+            syncBadge.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i>已成功同步記錄至 Cloudflare D1 資料庫（作答編號 #${resData.submission_id}）`;
+          }
+          // 🌟 更新作答頁面上方常駐交卷橫幅通知 🌟
+          const noticeBanner = document.getElementById('submittedNoticeBanner');
+          const noticeScore = document.getElementById('submittedNoticeScore');
+          const noticeDbBadge = document.getElementById('submittedNoticeDbBadge');
+          if (noticeBanner) noticeBanner.classList.remove('hidden');
+          if (noticeScore) noticeScore.innerText = scores.total;
+          if (noticeDbBadge) noticeDbBadge.innerHTML = `<i class="fa-solid fa-database mr-1"></i>已同步寫入 Cloudflare D1（編號 #${resData.submission_id}）`;
+
+          showToast(`作答成績已成功儲存至 D1 資料庫 (編號 #${resData.submission_id})！`);
+        } else {
+          if (syncBadge) {
+            syncBadge.className = 'text-xs font-bold text-rose-700 bg-rose-50 px-3 py-1 rounded-full border border-rose-200';
+            syncBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i>D1 儲存失敗：${resData.error || '請重試'}`;
+          }
+          showToast('D1 資料庫寫入失敗：' + (resData.error || ''), false);
+        }
+      } catch (err) {
+        console.error('D1 Submit Error:', err);
+        if (syncBadge) {
+          syncBadge.className = 'text-xs font-bold text-rose-700 bg-rose-50 px-3 py-1 rounded-full border border-rose-200';
+          syncBadge.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i>網路連線異常，本地計分已完成';
+        }
+        showToast('網路連線異常，未能即時寫入 D1 資料庫！', false);
+      }
+    }
+
+    async function requestAIReview(topic, fieldId, maxScore) {
+      const text = document.getElementById(fieldId).value.trim();
+      if (!text) {
+        showToast('請先在此欄位輸入您的作答內容！', false);
+        return;
+      }
+
+      document.getElementById('aiReviewModalTitle').innerText = `AI 臨床督導助教 智慧點評（${topic}）`;
+      document.getElementById('aiReviewContent').innerHTML = `
+        <div class="text-center py-6 text-slate-400">
+          <i class="fa-solid fa-spinner fa-spin text-2xl text-sky-500 mb-2"></i>
+          <p>AI 臨床督導助教正在審閱您的回答，請稍候...</p>
+        </div>
+      `;
+      document.getElementById('aiReviewModal').classList.remove('hidden');
+
+      try {
+        const res = await fetch('/api/ai/review-session3', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            student_name: currentStudent.name || '同學',
+            student_id: currentStudent.id || '',
+            question_topic: topic,
+            question_text: `滿分 ${maxScore} 分`,
+            answer_text: text,
+            max_score: maxScore
+          })
+        });
+        const data = await res.json();
+        if (data.success && data.feedback) {
+          document.getElementById('aiReviewContent').innerText = data.feedback;
+        } else {
+          document.getElementById('aiReviewContent').innerText = '目前 AI 連線回饋暫時無法取得，您的作答已被妥善記錄。';
+        }
+      } catch (err) {
+        document.getElementById('aiReviewContent').innerText = 'AI 助教服務暫時無法連線，您的本地作答已妥善保存。';
+      }
+    }
+
+    // 🌟 老師檢視成績：載入後台數據 🌟
+    async function loadTeacherDashboard() {
+      document.getElementById('teacherDashboardModalOverlay').classList.remove('hidden');
+      const tbody = document.getElementById('submissionsTableBody');
+      tbody.innerHTML = '<tr><td colspan="11" class="p-8 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin mr-1"></i>正在從 Cloudflare D1 資料庫載入全班作答資料...</td></tr>';
+
+      try {
+        const res = await fetch('/api/session3/submissions?_t=' + Date.now(), { headers: { 'Cache-Control': 'no-cache' } });
+        const jsonRes = await res.json();
+        if (jsonRes.success && jsonRes.data) {
+          allSubmissionsData = jsonRes.data;
+          renderSubmissionsTable(allSubmissionsData);
+          updateTeacherStats(allSubmissionsData);
+        } else {
+          tbody.innerHTML = '<tr><td colspan="11" class="p-8 text-center text-slate-400">目前 D1 資料庫中尚無學生提交紀錄。</td></tr>';
+        }
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="11" class="p-8 text-center text-rose-500 font-bold">載入失敗或後端連線異常。</td></tr>';
+      }
+    }
+
+    // 🌟 渲染全班姓名與成績表格 🌟
+    function renderSubmissionsTable(list) {
+      const tbody = document.getElementById('submissionsTableBody');
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" class="p-8 text-center text-slate-400">查無任何學生繳交資料。</td></tr>';
+        return;
+      }
+
+      let html = '';
+      list.forEach((sub, idx) => {
+        const dateStr = sub.submitted_at ? new Date(sub.submitted_at).toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
+        const scoreBadgeClass = sub.total_score >= 80 ? 'text-emerald-700 bg-emerald-50 border border-emerald-300' : (sub.total_score >= 60 ? 'text-amber-700 bg-amber-50 border border-amber-300' : 'text-rose-700 bg-rose-50 border border-rose-300');
+
+        html += `
+          <tr class="hover:bg-sky-50/60 transition border-b border-slate-100">
+            <td class="p-3.5 font-mono font-bold text-slate-700">${sub.student_id}</td>
+            <td class="p-3.5 font-black text-slate-900 text-sm sm:text-base">${sub.student_name}</td>
+            <td class="p-3.5 text-center font-mono font-black text-base">
+              <span class="px-3 py-1 rounded-full ${scoreBadgeClass}">${sub.total_score} 分</span>
+            </td>
+            <td class="p-3.5 text-center font-mono text-slate-600 hidden md:table-cell">${sub.score_part1 ?? '-'}</td>
+            <td class="p-3.5 text-center font-mono text-slate-600 hidden md:table-cell">${sub.score_part2 ?? '-'}</td>
+            <td class="p-3.5 text-center font-mono text-slate-600 hidden md:table-cell">${sub.score_part3 ?? '-'}</td>
+            <td class="p-3.5 text-center font-mono text-slate-600 hidden md:table-cell">${sub.score_part4 ?? '-'}</td>
+            <td class="p-3.5 text-center font-mono text-slate-600 hidden md:table-cell">${sub.score_part5 ?? '-'}</td>
+            <td class="p-3.5 text-center font-mono text-slate-600 hidden md:table-cell">${sub.score_part6 ?? '-'}</td>
+            <td class="p-3.5 text-slate-400 text-xs whitespace-nowrap">${dateStr}</td>
+            <td class="p-3.5 text-center">
+              <button type="button" onclick="viewStudentDetail(${idx})" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1 shadow-sm mx-auto" title="放大檢視詳細作答內容與課堂討論">
+                <i class="fa-solid fa-magnifying-glass-plus"></i>
+                <span>檢視作答＆討論</span>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
+    // 🌟 檢視作答的下方呈現學生答案的超大區域與超大討論回應框 🌟
+    function viewStudentDetail(idx) {
+      const sub = allSubmissionsData[idx];
+      if (!sub) return;
+
+      const panel = document.getElementById('studentDetailPanel');
+      const header = document.getElementById('detailStudentHeader');
+      const content = document.getElementById('detailStudentContent');
+
+      header.innerText = `學生【${sub.student_name}】（學號：${sub.student_id}）· 總分 ${sub.total_score} 分作答內容檢視`;
+      const ans = sub.answers || {};
+      const dateStr = sub.submitted_at ? new Date(sub.submitted_at).toLocaleString('zh-TW') : '-';
+      const scoreBadgeClass = sub.total_score >= 80 ? 'text-emerald-700 bg-emerald-100 border border-emerald-300' : (sub.total_score >= 60 ? 'text-amber-700 bg-amber-100 border border-amber-300' : 'text-rose-700 bg-rose-100 border border-rose-300');
+
+      content.innerHTML = `
+        <div class="space-y-6">
+          <!-- 頂部學生摘要橫幅 -->
+          <div class="p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-sky-950 to-indigo-950 text-white shadow-md flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <span class="text-xs text-sky-200 font-semibold uppercase tracking-wider">學生課堂作答成果</span>
+              <h3 class="text-2xl font-black mt-0.5">${sub.student_name}（學號：${sub.student_id}）</h3>
+              <p class="text-xs text-slate-300 mt-1">繳交時間：${dateStr}</p>
+            </div>
+            <div class="flex items-center space-x-4">
+              <div class="text-right">
+                <div class="text-xs text-sky-200">全卷綜合總分</div>
+                <div class="text-4xl font-black text-amber-300 font-mono">${sub.total_score} <span class="text-sm font-normal text-slate-300">/ 100 分</span></div>
+              </div>
+              <div class="px-3.5 py-1.5 rounded-xl text-xs font-black ${scoreBadgeClass}">
+                ${sub.total_score >= 90 ? '臨床特優' : (sub.total_score >= 75 ? '良好清晰' : (sub.total_score >= 60 ? '具備基礎' : '建議複習'))}
+              </div>
+            </div>
+          </div>
+
+          <!-- 六大單元小得分卡片 -->
+          <div class="grid grid-cols-2 sm:grid-cols-6 gap-2.5 text-center text-xs">
+            <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-sm">
+              <div class="text-slate-400 font-medium">壹·核心理念</div>
+              <div class="font-black text-sky-700 text-sm mt-0.5">${sub.score_part1 ?? 0} / 15</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-sm">
+              <div class="text-slate-400 font-medium">貳·Sean媽媽</div>
+              <div class="font-black text-sky-700 text-sm mt-0.5">${sub.score_part2 ?? 0} / 15</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-sm">
+              <div class="text-slate-400 font-medium">參·Justin爸爸</div>
+              <div class="font-black text-sky-700 text-sm mt-0.5">${sub.score_part3 ?? 0} / 20</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-sm">
+              <div class="text-slate-400 font-medium">肆·模仿技巧</div>
+              <div class="font-black text-sky-700 text-sm mt-0.5">${sub.score_part4 ?? 0} / 15</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-sm">
+              <div class="text-slate-400 font-medium">伍·解讀詮釋</div>
+              <div class="font-black text-sky-700 text-sm mt-0.5">${sub.score_part5 ?? 0} / 17</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-sm">
+              <div class="text-slate-400 font-medium">陸·評論意見</div>
+              <div class="font-black text-sky-700 text-sm mt-0.5">${sub.score_part6 ?? 0} / 18</div>
+            </div>
+          </div>
+
+          <!-- 六大題目學生作答詳細內容展示卡片（畫面大、字體大、空格大） -->
+          <div class="space-y-4">
+            
+            <!-- 壹、核心理念填空 -->
+            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2">
+              <div class="font-bold text-slate-900 text-base flex items-center justify-between border-b pb-2">
+                <span class="flex items-center space-x-2">
+                  <span class="w-6 h-6 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-black">壹</span>
+                  <span>核心理念篇（填空題作答結果）</span>
+                </span>
+                <span class="text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">得分：${sub.score_part1 ?? 0} / 15 分</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
+                <div class="p-3.5 bg-slate-50 rounded-xl space-y-1">
+                  <div class="font-semibold text-slate-500 mb-1">四大核心策略填空：</div>
+                  <p>① 立即回應：<span class="font-bold text-slate-900">${ans.p1_blank1 || '（未填）'}</span></p>
+                  <p>② 參與＆遊戲：<span class="font-bold text-slate-900">${ans.p1_blank2 || '（未填）'}</span></p>
+                  <p>③ 行為言語跟隨：<span class="font-bold text-slate-900">${[ans.p1_blank3, ans.p1_blank4, ans.p1_blank5].filter(Boolean).join('、') || '（未填）'}</span></p>
+                  <p>④ 貫徹到底：<span class="font-bold text-slate-900">${ans.p1_blank6 || '（未填）'}</span></p>
+                </div>
+                <div class="p-3.5 bg-slate-50 rounded-xl space-y-1">
+                  <div class="font-semibold text-slate-500 mb-1">OWL 技巧填空：</div>
+                  <p>O（觀察）：<span class="font-bold text-slate-900">${ans.p1_blank7 || '（未填）'}</span></p>
+                  <p>W（等待）：<span class="font-bold text-slate-900">${ans.p1_blank8 || '（未填）'}</span></p>
+                  <p>L（傾聽）：<span class="font-bold text-slate-900">${ans.p1_blank9 || '（未填）'}</span></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 貳、Sean 與媽媽 -->
+            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2">
+              <div class="font-bold text-slate-900 text-base flex items-center justify-between border-b pb-2">
+                <span class="flex items-center space-x-2">
+                  <span class="w-6 h-6 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-black">貳</span>
+                  <span>影片觀察一：Sean 與媽媽的三種跟隨技巧及其對應行為</span>
+                </span>
+                <span class="text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">得分：${sub.score_part2 ?? 0} / 15 分</span>
+              </div>
+              <div class="p-4 bg-sky-50/50 rounded-xl border border-sky-100 text-slate-800 leading-relaxed text-sm whitespace-pre-wrap font-medium">
+                ${ans.p2_essay ? ans.p2_essay : '<span class="text-slate-400 italic">（該生未填寫回答）</span>'}
+              </div>
+            </div>
+
+            <!-- 參、Justin 與爸爸 -->
+            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
+              <div class="font-bold text-slate-900 text-base flex items-center justify-between border-b pb-2">
+                <span class="flex items-center space-x-2">
+                  <span class="w-6 h-6 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-black">參</span>
+                  <span>策略一：參與＆遊戲——Justin 與爸爸（三向度深入分析）</span>
+                </span>
+                <span class="text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">得分：${sub.score_part3 ?? 0} / 20 分</span>
+              </div>
+              <div class="space-y-2.5 text-xs">
+                <div class="p-3.5 bg-slate-50 rounded-xl">
+                  <span class="font-bold text-sky-900 block mb-1">(1) 爸爸的位置與態度（6分）：</span>
+                  <p class="text-slate-800 text-sm font-medium whitespace-pre-wrap">${ans.p3_essay1 || '（未填）'}</p>
+                </div>
+                <div class="p-3.5 bg-slate-50 rounded-xl">
+                  <span class="font-bold text-sky-900 block mb-1">(2) 爸爸如何使用玩具/埋沙創造遊戲（7分）：</span>
+                  <p class="text-slate-800 text-sm font-medium whitespace-pre-wrap">${ans.p3_essay2 || '（未填）'}</p>
+                </div>
+                <div class="p-3.5 bg-slate-50 rounded-xl">
+                  <span class="font-bold text-sky-900 block mb-1">(3) 爸爸使用的生動聲音與字詞（7分）：</span>
+                  <p class="text-slate-800 text-sm font-medium whitespace-pre-wrap">${ans.p3_essay3 || '（未填）'}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 肆、模仿三個層次 -->
+            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
+              <div class="font-bold text-slate-900 text-base flex items-center justify-between border-b pb-2">
+                <span class="flex items-center space-x-2">
+                  <span class="w-6 h-6 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-black">肆</span>
+                  <span>策略二：模仿技巧的三個層次</span>
+                </span>
+                <span class="text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">得分：${sub.score_part4 ?? 0} / 15 分</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div class="p-3.5 bg-slate-50 rounded-xl">
+                  <span class="font-bold text-sky-900 block mb-1">層次一（5分）：</span>
+                  <p class="text-slate-800 text-sm font-medium whitespace-pre-wrap">${ans.p4_actions || '（未填）'}</p>
+                </div>
+                <div class="p-3.5 bg-slate-50 rounded-xl">
+                  <span class="font-bold text-sky-900 block mb-1">層次二（5分）：</span>
+                  <p class="text-slate-800 text-sm font-medium whitespace-pre-wrap">${ans.p4_sounds || '（未填）'}</p>
+                </div>
+                <div class="p-3.5 bg-slate-50 rounded-xl">
+                  <span class="font-bold text-sky-900 block mb-1">層次三（5分）：</span>
+                  <p class="text-slate-800 text-sm font-medium whitespace-pre-wrap">${ans.p4_words || '（未填）'}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 伍、解讀／詮釋 Grace 與 Zarina -->
+            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
+              <div class="font-bold text-slate-900 text-base flex items-center justify-between border-b pb-2">
+                <span class="flex items-center space-x-2">
+                  <span class="w-6 h-6 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-black">伍</span>
+                  <span>策略三：解讀／詮釋——Grace 與 Zarina</span>
+                </span>
+                <span class="text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">得分：${sub.score_part5 ?? 0} / 17 分</span>
+              </div>
+              <div class="space-y-2.5 text-xs">
+                <div class="p-3.5 bg-slate-50 rounded-xl">
+                  <span class="font-bold text-sky-900 block mb-1">1-(1) Grace 聲音動作與非語言線索（4.5分）：</span>
+                  <p class="text-slate-800 text-sm font-medium whitespace-pre-wrap">${ans.p5_grace1 || '（未填）'}</p>
+                </div>
+                <div class="p-3.5 bg-slate-50 rounded-xl">
+                  <span class="font-bold text-sky-900 block mb-1">1-(2) 還可以對 Grace 說些什麼字詞（4.5分）：</span>
+                  <p class="text-slate-800 text-sm font-medium whitespace-pre-wrap">${ans.p5_grace2 || '（未填）'}</p>
+                </div>
+                <div class="p-4 bg-amber-50/70 border border-amber-200 rounded-xl">
+                  <div class="flex items-center justify-between mb-1.5">
+                    <span class="font-bold text-amber-950 text-sm">2. Zarina 視為有意義之原因與影響（8分）：</span>
+                    <span class="text-[11px] bg-amber-200/60 text-amber-900 px-2 py-0.5 rounded font-semibold">評分標準：建立自我意識4分 + 行為富有意義與意圖4分</span>
+                  </div>
+                  <p class="text-slate-900 text-sm font-medium whitespace-pre-wrap leading-relaxed">${ans.p5_zarina || '（未填）'}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 陸、表示意見／評論 Ben 與媽媽 -->
+            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
+              <div class="font-bold text-slate-900 text-base flex items-center justify-between border-b pb-2">
+                <span class="flex items-center space-x-2">
+                  <span class="w-6 h-6 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-black">陸</span>
+                  <span>策略四：表示意見／評論——Ben 與媽媽點心時間</span>
+                </span>
+                <span class="text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">得分：${sub.score_part6 ?? 0} / 18 分</span>
+              </div>
+              <div class="space-y-3 text-xs">
+                <!-- (1) 描述大人做的事 -->
+                <div class="p-3.5 bg-slate-50 rounded-xl space-y-2">
+                  <span class="font-bold text-sky-900 block text-xs sm:text-sm">(1) 描述大人做的事（共 6 分）：</span>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div class="p-2.5 bg-white rounded-lg border border-slate-200">
+                      <span class="text-[11px] font-bold text-slate-500 block mb-1">① 媽媽倒果汁時說的話（3分）：</span>
+                      <p class="text-slate-800 text-sm font-medium whitespace-pre-wrap">${ans.p6_1_mom || ans.p6_doing || '<span class="text-slate-400 italic">（未填）</span>'}</p>
+                    </div>
+                    <div class="p-2.5 bg-indigo-50/50 rounded-lg border border-indigo-100">
+                      <span class="text-[11px] font-bold text-indigo-700 block mb-1">② 如果你是媽媽，你會說甚麼？（3分）：</span>
+                      <p class="text-slate-800 text-sm font-medium whitespace-pre-wrap">${ans.p6_1_self || '<span class="text-rose-500 font-bold bg-rose-50 px-1.5 py-0.5 rounded">（未回答學生自我表達，不得分）</span>'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- (2) 描述物品特徵狀態 -->
+                <div class="p-3.5 bg-slate-50 rounded-xl space-y-2">
+                  <span class="font-bold text-sky-900 block text-xs sm:text-sm">(2) 描述物品特徵狀態（共 6 分）：</span>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div class="p-2.5 bg-white rounded-lg border border-slate-200">
+                      <span class="text-[11px] font-bold text-slate-500 block mb-1">① 媽媽指著杯子時說的話（3分）：</span>
+                      <p class="text-slate-800 text-sm font-medium whitespace-pre-wrap">${ans.p6_2_mom || ans.p6_object || '<span class="text-slate-400 italic">（未填）</span>'}</p>
+                    </div>
+                    <div class="p-2.5 bg-indigo-50/50 rounded-lg border border-indigo-100">
+                      <span class="text-[11px] font-bold text-indigo-700 block mb-1">② 如果你是媽媽，你會說甚麼？（3分）：</span>
+                      <p class="text-slate-800 text-sm font-medium whitespace-pre-wrap">${ans.p6_2_self || '<span class="text-rose-500 font-bold bg-rose-50 px-1.5 py-0.5 rounded">（未回答學生自我表達，不得分）</span>'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- (3) 描述感受行為 -->
+                <div class="p-3.5 bg-slate-50 rounded-xl space-y-2">
+                  <span class="font-bold text-sky-900 block text-xs sm:text-sm">(3) 描述感受行為（共 6 分）：</span>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div class="p-2.5 bg-white rounded-lg border border-slate-200">
+                      <span class="text-[11px] font-bold text-slate-500 block mb-1">① 媽媽體察 Ben 感受說的話（3分）：</span>
+                      <p class="text-slate-800 text-sm font-medium whitespace-pre-wrap">${ans.p6_3_mom || ans.p6_feeling || '<span class="text-slate-400 italic">（未填）</span>'}</p>
+                    </div>
+                    <div class="p-2.5 bg-indigo-50/50 rounded-lg border border-indigo-100">
+                      <span class="text-[11px] font-bold text-indigo-700 block mb-1">② 如果你是媽媽，你會說甚麼？（3分）：</span>
+                      <p class="text-slate-800 text-sm font-medium whitespace-pre-wrap">${ans.p6_3_self || '<span class="text-rose-500 font-bold bg-rose-50 px-1.5 py-0.5 rounded">（未回答學生自我表達，不得分）</span>'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      panel.classList.remove('hidden');
+      panel.scrollIntoView({ behavior: 'smooth' });
+    }
+
+
+    function updateTeacherStats(list) {
+      if (!list || list.length === 0) {
+        document.getElementById('statStudentCount').innerText = '0 人';
+        document.getElementById('statAvgScore').innerText = '0 分';
+        document.getElementById('statMaxScore').innerText = '0 分';
+        document.getElementById('statPassRate').innerText = '0%';
+        return;
+      }
+
+      const uniqueMap = new Map();
+      list.forEach(item => {
+        if (!uniqueMap.has(item.student_id)) uniqueMap.set(item.student_id, item);
+      });
+      const uniqueList = Array.from(uniqueMap.values());
+
+      const count = uniqueList.length;
+      const totalSum = uniqueList.reduce((acc, cur) => acc + (cur.total_score || 0), 0);
+      const max = Math.max(...uniqueList.map(s => s.total_score || 0));
+      const passCount = uniqueList.filter(s => (s.total_score || 0) >= 60).length;
+
+      document.getElementById('statStudentCount').innerText = `${count} 人`;
+      document.getElementById('statAvgScore').innerText = `${Math.round(totalSum / count)} 分`;
+      document.getElementById('statMaxScore').innerText = `${max} 分`;
+      document.getElementById('statPassRate').innerText = `${Math.round((passCount / count) * 100)}%`;
+    }
+
+    function exportToExcel() {
+      if (!allSubmissionsData || allSubmissionsData.length === 0) {
+        showToast('目前尚無資料可供匯出！', false);
+        return;
+      }
+
+      const rows = allSubmissionsData.map(sub => {
+        const ans = sub.answers || {};
+        return {
+          '學號': sub.student_id,
+          '姓名': sub.student_name,
+          '學習單總分 (100分)': sub.total_score,
+          '壹_核心理念得分 (15分)': sub.score_part1 ?? 0,
+          '貳_Sean與媽媽得分 (15分)': sub.score_part2 ?? 0,
+          '參_Justin與爸爸得分 (20分)': sub.score_part3 ?? 0,
+          '肆_模仿技巧得分 (15分)': sub.score_part4 ?? 0,
+          '伍_解讀Grace與Zarina得分 (17分)': sub.score_part5 ?? 0,
+          '陸_評論Ben與媽媽得分 (18分)': sub.score_part6 ?? 0,
+          '陸-(1)媽媽說的話': ans.p6_1_mom || ans.p6_doing || '',
+          '陸-(1)學生表達': ans.p6_1_self || '',
+          '陸-(2)媽媽說的話': ans.p6_2_mom || ans.p6_object || '',
+          '陸-(2)學生表達': ans.p6_2_self || '',
+          '陸-(3)媽媽說的話': ans.p6_3_mom || ans.p6_feeling || '',
+          '陸-(3)學生表達': ans.p6_3_self || '',
+          '交卷時間': sub.submitted_at || '',
+          'Zarina作答內容': ans.p5_zarina || '',
+          'AI評語與學生反思': sub.ai_feedback || ''
+        };
+      });
+
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Session2-2成績報表');
+      const filename = `Session2-2_跟隨孩子引導_全班成績表_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      XLSX.writeFile(wb, filename);
+      showToast(`已成功匯出全班 Excel 報表：${filename}`);
+    }
+
+    function setupAutoSave() {
+      let timer = null;
+      document.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          saveDraft(false);
+        }, 1200);
+      });
+    }
+
+    function bindEvents() {
+      // 學生身分 Modal 按鈕綁定
+      document.getElementById('studentProfileBtn')?.addEventListener('click', openStudentModal);
+      document.getElementById('closeStudentModal')?.addEventListener('click', closeStudentModal);
+      document.getElementById('cancelStudentModal')?.addEventListener('click', closeStudentModal);
+      document.getElementById('studentForm')?.addEventListener('submit', handleStudentFormSubmit);
+
+      // 橫幅直接輸入確認按鈕
+      document.getElementById('confirmDirectStudentBtn')?.addEventListener('click', confirmDirectStudent);
+
+      // 暫存與列印
+      document.getElementById('saveDraftBtn')?.addEventListener('click', () => saveDraft(true));
+      document.getElementById('printBtn')?.addEventListener('click', () => window.print());
+
+      // 側邊欄切換
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.getElementById('sidebarToggle');
+      const close = document.getElementById('closeSidebar');
+      toggle?.addEventListener('click', () => sidebar?.classList.toggle('-translate-x-full'));
+      close?.addEventListener('click', () => sidebar?.classList.add('-translate-x-full'));
+
+      // 成績單關閉按鈕
+      document.getElementById('closeScoreReportBtn')?.addEventListener('click', closeScoreReportModal);
+
+      // AI Modal 關閉
+      document.getElementById('closeAiReviewModal')?.addEventListener('click', closeAiModal);
+      document.getElementById('ackAiReviewBtn')?.addEventListener('click', closeAiModal);
+
+      // 教師後台 Modal
+      document.getElementById('teacherDashboardBtn')?.addEventListener('click', loadTeacherDashboard);
+      document.getElementById('closeTeacherDashboardBtn')?.addEventListener('click', closeTeacherDashboardModal);
+      document.getElementById('refreshSubmissionsBtn')?.addEventListener('click', loadTeacherDashboard);
+      document.getElementById('exportExcelBtn')?.addEventListener('click', exportToExcel);
+
+      // 教師搜尋
+      document.getElementById('teacherSearchInput')?.addEventListener('input', (e) => {
+        const q = e.target.value.trim().toLowerCase();
+        if (!q) {
+          renderSubmissionsTable(allSubmissionsData);
+          return;
+        }
+        const filtered = allSubmissionsData.filter(s =>
+          (s.student_id && String(s.student_id).toLowerCase().includes(q)) ||
+          (s.student_name && String(s.student_name).toLowerCase().includes(q))
+        );
+        renderSubmissionsTable(filtered);
+      });
+
+      // 清空所有後端紀錄 (僅限管理員)
+      document.getElementById('clearAllDbDataBtn')?.addEventListener('click', async () => {
+        const code = prompt('⚠️ 警告：這將徹底清空 D1 資料庫中【第三節 (Session 2-2)】所有學生的作答紀錄！\n若確定清除，請在此輸入「CLEAR」：');
+        if (code === 'CLEAR') {
+          try {
+            const res = await fetch('/api/session3/clear', { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+              allSubmissionsData = [];
+              renderSubmissionsTable([]);
+              updateTeacherStats([]);
+              showToast('資料庫中 Session 2-2 的作答紀錄已全部清除！');
+            } else {
+              showToast('清除失敗！', false);
+            }
+          } catch (e) {
+            showToast('連線異常，清除失敗！', false);
+          }
+        }
+      });
+
+      // ESC 鍵關閉所有浮動彈窗
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeScoreReportModal();
+          closeTeacherDashboardModal();
+          closeAiModal();
+          closeStudentModal();
+        }
+      });
+    }
+  </script>
+</body>
+</html>
