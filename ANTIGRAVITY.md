@@ -91,6 +91,32 @@
 - 影片資產配置：
   - 於 `public/videos/` 配置標準 MP4 格式示範影片（`itttr2-05.mp4` 至 `itttr2-09.mp4`），供前端直接內嵌流暢播放。
 
+### 4-4. 第四節：Session 2-3 跟隨孩子引導綜合實務篇學習單資料表 (session4_submissions)
+自閉症 Session 2-3（跟隨孩子引導 - 影片觀察與臨床實務三大題）學習單作答數據記錄（滿分 100 分）：
+- 表名：`session4_submissions`
+- 欄位架構：
+  - `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
+  - `student_id` (TEXT NOT NULL) — 學生學號
+  - `student_name` (TEXT NOT NULL) — 學生姓名
+  - `total_score` (INTEGER NOT NULL DEFAULT 0) — 總成績 (0-100)
+  - `score_part1` (INTEGER NOT NULL DEFAULT 0) — 壹、影片辨析篇：Jacob 與媽媽的跟隨與錯失 (30分)
+  - `score_part2` (INTEGER NOT NULL DEFAULT 0) — 貳、影片評論延伸篇：Alicia 高塔話題評論 (30分)
+  - `score_part3` (INTEGER NOT NULL DEFAULT 0) — 參、臨床實務練習篇：柏翔真實個案深入剖析 (40分)
+  - `answers_json` (TEXT) — 完整作答內容 (包含各題文字作答 JSON)
+  - `ai_feedback` (TEXT) — AI 助教審閱回饋與建議
+  - `teacher_notes` (TEXT) — 課堂即時討論註記
+  - `submitted_at` (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+- 支援 API 端點：
+  - `POST /api/session4/submit`：提交學習單成績與答案至 D1
+  - `GET /api/session4/submissions`：教師總覽與 Excel 匯出 (全班紀錄)
+  - `POST /api/session4/update-notes`：教師課堂討論註記更新
+  - `POST /api/session4/clear`：教師專屬一鍵清除 Session 2-3 歷史作答
+  - `POST /api/ai/review-session4`：AI 臨床督導助教 簡答題智慧審閱
+- 影片資產配置：
+  - `public/videos/itttr2-11a.mp4` (Jacob 農場小豬與箱子，84s)
+  - `public/videos/itttr2-11b.mp4` (Alicia 高塔積木，32s)
+  - `public/videos/xiangxiang.mp4` (柏翔自動販賣機投幣與垃圾桶扮演，123s，壓縮優化版)
+
 ### 5. AI 蘇格拉底家教（方案三：錯題破障微對話）架構規範
 - **核心定位**：採用反詰問引導（Socratic Method），不直接提供答案，透過逐步階梯式提問引導學生自行推導並突破認知盲點。
 - **後端模型**：Groq API (`qwen/qwen3.8-27b`)，以高敏捷（<1.5秒/回合）、全繁體中文（台灣特教臨床語彙）進行引導。

@@ -903,6 +903,187 @@ ${answer_text.trim()}
       }
     }
 
+    // 13. 自閉症 Session 2-3 (第四節)：提交學習單成績與答案至 D1
+    if (url.pathname === '/api/session4/submit' && request.method === 'POST') {
+      try {
+        const body = await request.json() as any;
+        const {
+          total_score = 0,
+          score_part1 = 0,
+          score_part2 = 0,
+          score_part3 = 0,
+          answers_json = {},
+          ai_feedback = ''
+        } = body;
+
+        const finalStudentId = String(body.student_id ?? '').trim();
+        const finalStudentName = String(body.student_name ?? '').trim();
+
+        if (!finalStudentId || !finalStudentName) {
+          return json({ success: false, error: '請輸入正確的學號與姓名' }, { status: 400 });
+        }
+
+        const serializedAnswers = typeof answers_json === 'string'
+          ? answers_json
+          : JSON.stringify(answers_json);
+
+        const result = await env.autism_comm_disorders_db
+          .prepare(`
+            INSERT INTO session4_submissions (
+              student_id, student_name, total_score,
+              score_part1, score_part2, score_part3,
+              answers_json, ai_feedback
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `)
+          .bind(
+            finalStudentId,
+            finalStudentName,
+            Number(total_score) || 0,
+            Number(score_part1) || 0,
+            Number(score_part2) || 0,
+            Number(score_part3) || 0,
+            serializedAnswers,
+            ai_feedback || ''
+          )
+          .run();
+
+        return json({
+          success: true,
+          message: 'Session 2-3 課堂學習單已成功提交並記錄至 D1 資料庫！',
+          submission_id: result.meta?.last_row_id || null
+        });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 14. 自閉症 Session 2-3 (第四節)：查詢全班學習單作答資料與成績 (供教師端總覽與 Excel 匯出)
+    if (url.pathname === '/api/session4/submissions' && request.method === 'GET') {
+      try {
+        const { results } = await env.autism_comm_disorders_db
+          .prepare(`
+            SELECT 
+              id, student_id, student_name, total_score,
+              score_part1, score_part2, score_part3,
+              answers_json, ai_feedback, teacher_notes,
+              submitted_at
+            FROM session4_submissions
+            ORDER BY submitted_at DESC
+          `)
+          .all();
+
+        const parsed = results.map((row: any) => {
+          let parsedAnswers = {};
+          try {
+            parsedAnswers = typeof row.answers_json === 'string' ? JSON.parse(row.answers_json) : row.answers_json;
+          } catch (e) {
+            parsedAnswers = { raw: row.answers_json };
+          }
+          return {
+            ...row,
+            answers: parsedAnswers
+          };
+        });
+
+        return json({ success: true, count: parsed.length, data: parsed });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 15. 自閉症 Session 2-3 (第四節)：老師即時更新課堂回饋／討論註記
+    if (url.pathname === '/api/session4/update-notes' && request.method === 'POST') {
+      try {
+        const body = await request.json() as any;
+        const { id, teacher_notes } = body;
+        if (!id) {
+          return json({ success: false, error: '缺少 submission id' }, { status: 400 });
+        }
+
+        await env.autism_comm_disorders_db
+          .prepare('UPDATE session4_submissions SET teacher_notes = ? WHERE id = ?')
+          .bind(teacher_notes || '', Number(id))
+          .run();
+
+        return json({ success: true, message: '課堂討論註記已成功儲存至 D1 資料庫！' });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 16. 自閉症 Session 2-3 (第四節)：清除所有歷史作答資料 (教師端專屬重設)
+    if ((url.pathname === '/api/session4/clear' || (url.pathname === '/api/session4/submissions' && url.searchParams.get('action') === 'clear')) && (request.method === 'POST' || request.method === 'DELETE')) {
+      try {
+        await env.autism_comm_disorders_db
+          .prepare('DELETE FROM session4_submissions')
+          .run();
+
+        return json({ success: true, message: '已成功清除 D1 資料庫中 Session 2-3 所有學生歷史作答紀錄！' });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 17. 自閉症 Session 2-3 (第四節)：AI 臨床督導助教 簡答題智慧審閱
+    if (url.pathname === '/api/ai/review-session4' && request.method === 'POST') {
+      try {
+        const body = await request.json() as any;
+        const {
+          student_name = '同學',
+          student_id = '',
+          question_topic = '跟隨引導與臨床個案分析',
+          question_text = '',
+          answer_text = '',
+          max_score = 10
+        } = body;
+
+        if (!answer_text || !answer_text.trim()) {
+          return json({ success: false, error: '請先輸入您的作答內容再請求 AI 助教審閱！' }, { status: 400 });
+        }
+
+        const reviewPrompt = `學生姓名：${student_name} (學號: ${student_id})
+題目主題：${question_topic}
+題目內容：${question_text}
+本題滿分：${max_score} 分
+
+學生作答內容：
+"""
+${answer_text.trim()}
+"""
+
+任務：
+請扮演專業的語言治療與自閉症早期療育臨床督導助教，依據 Hanen It Takes Two to Talk® 核心精神與《新版翔翔影片練習與解析》臨床督導標準進行多層次專業評閱：
+
+【評分規準層次標準 (Rubrics)】：
+- 🌟 【優等層次 (滿分 85% ~ 100% 得分)】：
+  * 若為「錯失分析」：指認 2 處以上具體情境（投幣硬搶/逼說我要、找垃圾桶代勞、滿溢代清），具體提出運用 OWL（等待 3~5 秒）、製造溝通機會（硬幣拿嘴前建立共同注意、示範口語口型「我要」後增強，或引導仿說「幫忙」）等臨床操作步驟。
+  * 若為「角色診斷」：精準辨析媽媽呈現「指導型（Director）」與「幫忙型（Helper）」，並引用具體行為實證；深入提出轉化為「會意型（Responsive Partner）」與「參與遊戲（Join in and play）」之具體作法（在旁也買果汁假裝喝、誇張表情互動、尊重孩子界線不強奪）。
+  * 若為「時機規劃」：涵蓋 3 個不同歷程（投幣、喝飲料、垃圾桶塞不下/換玩具），台詞為道地的平行談話或描述性評論/解讀，完全摒除命令句與考試詰問。
+- ⚡ 【中等層次 (滿分 50% ~ 84% 得分)】：
+  * 僅能指認單一情境或單一角色，論述偏向原則性口號（如「要多等待」、「要有耐心」），缺乏在該情境假扮遊戲中具體參與演出的示範步驟；或台詞帶有命令/封閉式問句色彩。
+- ⚠️ 【待加強層次 (滿分 50% 以下得分)】：
+  * 未採用 Hanen 專業術語、內容過於簡短空泛，未結合個案具體脈絡。
+
+請輸出：
+1. 【評定層次與建議得分】：明確標註落點【🌟 優等】、【⚡ 中等】或【⚠️ 待加強】，並給出客觀建議得分（0 ~ ${max_score} 分）。
+2. 【向度評析與對照】：對照臨床標準解析指出學生作答之優點與具體待補足之處。
+3. 【臨床勉勵】：以溫暖、專業且具啟發性的口吻給予建議。`;
+
+        const reply = await callLLM(env, [
+          { role: 'system', content: '你是一位專業、溫暖且具啟發性的語言病理學臨床督導助教，使用繁體中文（台灣特教臨床習慣）回答。' },
+          { role: 'user', content: reviewPrompt }
+        ]);
+
+        return json({
+          success: true,
+          feedback: reply
+        });
+      } catch (err: any) {
+        console.error('Session 4 AI Review Error:', err);
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
     // 靜態前端資源處理 (Cloudflare Assets)
     if (env.ASSETS) {
       return env.ASSETS.fetch(request);
