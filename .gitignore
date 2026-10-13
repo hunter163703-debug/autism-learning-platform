@@ -21,3 +21,10 @@ Desktop.ini
 # Student score exports & spreadsheets (privacy & security)
 *.xlsx
 *.csv
+
+# Media assets
+public/videos/
+
+# Python cache
+__pycache__/
+*.pyc

@@ -117,6 +117,79 @@
   - `public/videos/itttr2-11b.mp4` (Alicia 高塔積木，32s)
   - `public/videos/xiangxiang.mp4` (柏翔自動販賣機投幣與垃圾桶扮演，123s，壓縮優化版)
 
+### 4-5. 第五節：Session 1 Let Your Child Lead 學生分組學習單資料表 (session5_submissions)
+自閉症第五節（It Takes Two to Talk Session 1: Let Your Child Lead）學生分組學習單作答數據記錄（滿分 100 分）：
+- 表名：`session5_submissions`
+- 欄位架構：
+  - `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
+  - `student_id` (TEXT NOT NULL) — 學生學號
+  - `student_name` (TEXT NOT NULL) — 學生姓名
+  - `group_name` (TEXT DEFAULT '') — 小組組別 (如第 1 組)
+  - `group_members` (TEXT DEFAULT '') — 小組同組成員名單
+  - `total_score` (INTEGER NOT NULL DEFAULT 0) — 總成績 (0-100)
+  - `score_part1` (INTEGER NOT NULL DEFAULT 0) — 壹、溝通始於互動 (20分)
+  - `score_part2` (INTEGER NOT NULL DEFAULT 0) — 貳、孩子「如何」以及「為什麼」溝通 (25分)
+  - `score_part3` (INTEGER NOT NULL DEFAULT 0) — 參、跟隨孩子引導與 OWL 策略應用 (25分)
+  - `score_part4` (INTEGER NOT NULL DEFAULT 0) — 肆、辨識互動訊號與跨階段 OWL 實務應用 (30分)
+  - `answers_json` (TEXT) — 完整作答內容 JSON
+  - `ai_feedback` (TEXT) — AI 助教審閱回饋與建議
+  - `teacher_notes` (TEXT) — 課堂即時討論註記
+  - `submitted_at` (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+- 支援 API 端點：
+  - `POST /api/session5/submit`：提交學習單成績與答案至 D1
+  - `GET /api/session5/submissions`：教師總覽與 Excel 匯出 (全班紀錄)
+  - `POST /api/session5/update-notes`：教師課堂討論註記更新
+  - `POST /api/session5/clear`：教師專屬一鍵清除第五節歷史作答
+  - `POST /api/ai/review-session5`：AI 臨床督導助教 題目智慧審閱
+- **課堂影片與作答規範**：
+  - 配合課堂教學設計，頁面內**不放置內嵌影片**，引導學生專注觀看教師於課堂投影放映之示範片段並展開現場討論。
+  - 學生作答之文字框（input / textarea）**一律不設 placeholder 與引導提示**，提供純淨獨立作答環境。
+  - 身分登記純化為「學號」與「姓名」，不設組別選項。
+- 影片資產配置（供後續或備用）：
+  - `public/videos/itttr1-01.mp4` (Slide 7 親子互動過程)
+  - `public/videos/itttr1-04.mp4` (Slide 20 小男孩自我表達)
+  - `public/videos/itttr1-05a.mp4` (Slide 22 Tristan 水龍頭泡泡)
+  - `public/videos/itttr1-06.mp4` (Slide 24 Basil 句型)
+  - `public/videos/itttr1-07.mp4` (Slide 31 牛奶與餅乾)
+  - `public/videos/itttr1-08r.mp4` (Slide 43 Tristan 與爸爸 OWL)
+  - `public/videos/itttr1-09.mp4` (Slide 44 Basil 與媽媽 OWL)
+
+### 4-6. 第六節：Session 3 & 4 雙向溝通與促進互動成長學習單資料表 (session6_submissions)
+自閉症第六節（Session 3 輪替提示與SPARK + Session 4 4S原則與雙向溝通）學習單作答數據記錄（滿分 100 分）：
+- 表名：`session6_submissions`
+- 欄位架構：
+  - `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
+  - `student_id` (TEXT NOT NULL) — 學生學號
+  - `student_name` (TEXT NOT NULL) — 學生姓名
+  - `group_name` (TEXT DEFAULT '') — 備用組別欄位
+  - `group_members` (TEXT DEFAULT '') — 備用組員名單欄位
+  - `total_score` (INTEGER NOT NULL DEFAULT 0) — 總成績 (0-100)
+  - `score_part1` (INTEGER NOT NULL DEFAULT 0) — Part A：Session 3 促進互動成長 (50分)
+  - `score_part2` (INTEGER NOT NULL DEFAULT 0) — Part B：Session 4 雙向溝通家長漢能 (50分)
+  - `answers_json` (TEXT) — 完整作答內容 JSON
+  - `ai_feedback` (TEXT) — AI 助教審閱回饋與建議
+  - `teacher_notes` (TEXT) — 課堂即時討論註記
+  - `submitted_at` (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+- 支援 API 端點：
+  - `POST /api/session6/submit`：提交學習單成績與答案至 D1
+  - `GET /api/session6/submissions`：教師總覽與 Excel 匯出 (全班紀錄)
+  - `POST /api/session6/update-notes`：教師課堂討論註記更新
+  - `POST /api/session6/clear`：教師專屬一鍵清除第六節歷史作答
+  - `POST /api/ai/review-session6`：AI 臨床督導助教 題目智慧審閱
+- **課堂影片與作答規範**：
+  - 配合課堂教學設計，頁面內**不放置內嵌影片**，引導學生專注觀看教師於課堂投影放映之示範片段並展開現場討論。
+  - 學生作答之文字框（input / textarea）**一律不設 placeholder 與引導提示**，提供純淨獨立作答環境。
+  - 身分登記純化為「學號」與「姓名」，不設組別選項。
+- 影片資產配置（供後續或備用）：
+  - `public/videos/itttr3-04.mp4` (投影片14 繪本延續對話)
+  - `public/videos/itttr3-05b.mp4` (投影片18 Emily 下午茶)
+  - `public/videos/itttr3-07.mp4` (投影片28 Alicia 提問與評論)
+  - `public/videos/itttr3-08a.mp4` (投影片33 Sean 肢體互動常規)
+  - `public/videos/itttr3-10a.mp4` (投影片41 Jack 盪鞦韆 SPARK)
+  - `public/videos/itttr4-04.mp4` (Slide 18 Tristan 與爸爸球池)
+  - `public/videos/itttr4-06a.mp4` (Slide 24 Tristan 擴充訊息)
+  - `public/videos/itttr4-08a.mp4` (Slide 31 積木高塔 4S 原則)
+
 ### 5. AI 蘇格拉底家教（方案三：錯題破障微對話）架構規範
 - **核心定位**：採用反詰問引導（Socratic Method），不直接提供答案，透過逐步階梯式提問引導學生自行推導並突破認知盲點。
 - **後端模型**：Groq API (`qwen/qwen3.8-27b`)，以高敏捷（<1.5秒/回合）、全繁體中文（台灣特教臨床語彙）進行引導。

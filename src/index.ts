@@ -1084,6 +1084,392 @@ ${answer_text.trim()}
       }
     }
 
+    // ==========================================
+    // 18. 第五節 (Session 1): 學生分組學習單 API
+    // ==========================================
+    // 18-1. 提交 Session 5 (Session 1) 學習單
+    if (url.pathname === '/api/session5/submit' && request.method === 'POST') {
+      try {
+        const body = await request.json() as any;
+        const {
+          total_score = 0,
+          score_part1 = 0,
+          score_part2 = 0,
+          score_part3 = 0,
+          score_part4 = 0,
+          answers_json = {},
+          ai_feedback = '',
+          group_name = '',
+          group_members = ''
+        } = body;
+
+        const finalStudentId = String(body.student_id ?? '').trim();
+        const finalStudentName = String(body.student_name ?? '').trim();
+
+        if (!finalStudentId || !finalStudentName) {
+          return json({ success: false, error: '請輸入正確的學號與姓名' }, { status: 400 });
+        }
+
+        const serializedAnswers = typeof answers_json === 'string'
+          ? answers_json
+          : JSON.stringify(answers_json);
+
+        const result = await env.autism_comm_disorders_db
+          .prepare(`
+            INSERT INTO session5_submissions (
+              student_id, student_name, group_name, group_members,
+              total_score, score_part1, score_part2, score_part3, score_part4,
+              answers_json, ai_feedback
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `)
+          .bind(
+            finalStudentId,
+            finalStudentName,
+            String(group_name ?? '').trim(),
+            String(group_members ?? '').trim(),
+            Number(total_score) || 0,
+            Number(score_part1) || 0,
+            Number(score_part2) || 0,
+            Number(score_part3) || 0,
+            Number(score_part4) || 0,
+            serializedAnswers,
+            ai_feedback || ''
+          )
+          .run();
+
+        return json({
+          success: true,
+          message: '第五節 (Session 1) 課堂學習單已成功提交並記錄至 D1 資料庫！',
+          submission_id: result.meta?.last_row_id || null
+        });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 18-2. 查詢全班 Session 5 學習單紀錄
+    if (url.pathname === '/api/session5/submissions' && request.method === 'GET') {
+      try {
+        const { results } = await env.autism_comm_disorders_db
+          .prepare(`
+            SELECT 
+              id, student_id, student_name, group_name, group_members,
+              total_score, score_part1, score_part2, score_part3, score_part4,
+              answers_json, ai_feedback, teacher_notes,
+              submitted_at
+            FROM session5_submissions
+            ORDER BY submitted_at DESC
+          `)
+          .all();
+
+        const parsed = results.map((row: any) => {
+          let parsedAnswers = {};
+          try {
+            parsedAnswers = typeof row.answers_json === 'string' ? JSON.parse(row.answers_json) : row.answers_json;
+          } catch (e) {
+            parsedAnswers = { raw: row.answers_json };
+          }
+          return {
+            ...row,
+            answers: parsedAnswers
+          };
+        });
+
+        return json({ success: true, count: parsed.length, data: parsed });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 18-3. 老師更新 Session 5 課堂討論註記
+    if (url.pathname === '/api/session5/update-notes' && request.method === 'POST') {
+      try {
+        const body = await request.json() as any;
+        const { id, teacher_notes } = body;
+        if (!id) {
+          return json({ success: false, error: '缺少 submission id' }, { status: 400 });
+        }
+
+        await env.autism_comm_disorders_db
+          .prepare('UPDATE session5_submissions SET teacher_notes = ? WHERE id = ?')
+          .bind(teacher_notes || '', Number(id))
+          .run();
+
+        return json({ success: true, message: '課堂討論註記已成功儲存至 D1 資料庫！' });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 18-4. 清除 Session 5 歷史作答
+    if ((url.pathname === '/api/session5/clear' || (url.pathname === '/api/session5/submissions' && url.searchParams.get('action') === 'clear')) && (request.method === 'POST' || request.method === 'DELETE')) {
+      try {
+        await env.autism_comm_disorders_db
+          .prepare('DELETE FROM session5_submissions')
+          .run();
+
+        return json({ success: true, message: '已成功清除 D1 資料庫中第五節 (Session 1) 所有學生歷史作答紀錄！' });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 18-5. AI 助教審閱 Session 5 題目
+    if (url.pathname === '/api/ai/review-session5' && request.method === 'POST') {
+      try {
+        const body = await request.json() as any;
+        const {
+          student_name = '同學',
+          student_id = '',
+          group_name = '',
+          question_topic = 'Let Your Child Lead 核心觀察與互動分析',
+          question_text = '',
+          answer_text = '',
+          max_score = 10
+        } = body;
+
+        if (!answer_text || !answer_text.trim()) {
+          return json({ success: false, error: '請先輸入您的作答內容再請求 AI 助教審閱！' }, { status: 400 });
+        }
+
+        const reviewPrompt = `學生姓名：${student_name} (學號: ${student_id}${group_name ? ', 組別: ' + group_name : ''})
+題目主題：${question_topic}
+題目內容：${question_text}
+本題滿分：${max_score} 分
+
+學生作答內容：
+"""
+${answer_text.trim()}
+"""
+
+任務：
+請扮演專業的語言病理學與自閉症早期介入臨床教學督導助教，針對 Hanen It Takes Two to Talk® Session 1（Let Your Child Lead）的學生作答進行多向度臨床專業評閱：
+
+【標準與解析參考】：
+1. 溝通始於互動，先有互動才有語言。兒童三大基本需求：愉快的互動、溝通的理由、溝通的方式。
+2. 溝通四階段：探索者(Discoverer)、溝通者(Communicator)、使用第一個字(First Words User)、組合者(Combiner)。
+3. 小男孩表達：指杯子表達飲料位置、分享玩具牛、讓牛喝水發出聲音象徵遊戲。
+4. 媽媽與Tristan：按住水龍頭等說on、示範泡泡讀音、洗碗精等待Tristan發現、等待說on後擠出。
+5. Basil溝通技能：溝通修補、輪替、介系詞(in/on)、定冠詞(the)、簡單句、被動句、方位詞。
+6. 面對面、OWL策略（Observe觀察、Wait等待、Listen聆聽）、由孩子主導語言發展。
+7. 互動訊號：停止移動、注視臉龐、微笑、發聲、肢體動作。Sasha與媽媽堆盒子、發聲推倒。
+8. 跨階段 OWL 實務應用（Parent Guidebook p. 21）：
+   - Communicator (Sasha Slide 42)：媽媽觀察等待、Sasha 推倒盒子發聲互動。
+   - First Words User (Tristan Slide 43)：爸爸面對面平視、耐心等待不催促、跟隨孩子注意力，促進 Tristan 開口說出字詞與主動表達。
+   - Combiner (Basil Slide 44)：媽媽耐心聆聽完整句型、不打斷孩子敘述、以行動配合意圖，引導 Basil 展現更長且豐富的語詞結合與事件描述。
+
+請輸出：
+1. 【評定層次與建議得分】：明確標註落點【🌟 優等】、【⚡ 中等】或【⚠️ 待加強】，並給出客觀建議得分（0 ~ ${max_score} 分）。
+2. 【向度評析與對照】：指出學生作答之敏銳觀察點、對應之臨床核心概念，以及具體可深化補強之處。
+3. 【臨床勉勵】：以溫暖、專業且具啟發性的口吻給予建議。`;
+
+        const reply = await callLLM(env, [
+          { role: 'system', content: '你是一位專業、溫暖且具啟發性的語言病理學臨床督導助教，使用繁體中文（台灣特教臨床習慣）回答。' },
+          { role: 'user', content: reviewPrompt }
+        ]);
+
+        return json({
+          success: true,
+          feedback: reply
+        });
+      } catch (err: any) {
+        console.error('Session 5 AI Review Error:', err);
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // ==========================================
+    // 19. 第六節 (Session 3 & Session 4): 學生分組學習單 API
+    // ==========================================
+    // 19-1. 提交 Session 6 (Session 3 & Session 4) 學習單
+    if (url.pathname === '/api/session6/submit' && request.method === 'POST') {
+      try {
+        const body = await request.json() as any;
+        const {
+          total_score = 0,
+          score_part1 = 0,
+          score_part2 = 0,
+          answers_json = {},
+          ai_feedback = '',
+          group_name = '',
+          group_members = ''
+        } = body;
+
+        const finalStudentId = String(body.student_id ?? '').trim();
+        const finalStudentName = String(body.student_name ?? '').trim();
+
+        if (!finalStudentId || !finalStudentName) {
+          return json({ success: false, error: '請輸入正確的學號與姓名' }, { status: 400 });
+        }
+
+        const serializedAnswers = typeof answers_json === 'string'
+          ? answers_json
+          : JSON.stringify(answers_json);
+
+        const result = await env.autism_comm_disorders_db
+          .prepare(`
+            INSERT INTO session6_submissions (
+              student_id, student_name, group_name, group_members,
+              total_score, score_part1, score_part2,
+              answers_json, ai_feedback
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `)
+          .bind(
+            finalStudentId,
+            finalStudentName,
+            String(group_name ?? '').trim(),
+            String(group_members ?? '').trim(),
+            Number(total_score) || 0,
+            Number(score_part1) || 0,
+            Number(score_part2) || 0,
+            serializedAnswers,
+            ai_feedback || ''
+          )
+          .run();
+
+        return json({
+          success: true,
+          message: '第六節 (Session 3 & Session 4) 課堂學習單已成功提交並記錄至 D1 資料庫！',
+          submission_id: result.meta?.last_row_id || null
+        });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 19-2. 查詢全班 Session 6 學習單紀錄
+    if (url.pathname === '/api/session6/submissions' && request.method === 'GET') {
+      try {
+        const { results } = await env.autism_comm_disorders_db
+          .prepare(`
+            SELECT 
+              id, student_id, student_name, group_name, group_members,
+              total_score, score_part1, score_part2,
+              answers_json, ai_feedback, teacher_notes,
+              submitted_at
+            FROM session6_submissions
+            ORDER BY submitted_at DESC
+          `)
+          .all();
+
+        const parsed = results.map((row: any) => {
+          let parsedAnswers = {};
+          try {
+            parsedAnswers = typeof row.answers_json === 'string' ? JSON.parse(row.answers_json) : row.answers_json;
+          } catch (e) {
+            parsedAnswers = { raw: row.answers_json };
+          }
+          return {
+            ...row,
+            answers: parsedAnswers
+          };
+        });
+
+        return json({ success: true, count: parsed.length, data: parsed });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 19-3. 老師更新 Session 6 課堂討論註記
+    if (url.pathname === '/api/session6/update-notes' && request.method === 'POST') {
+      try {
+        const body = await request.json() as any;
+        const { id, teacher_notes } = body;
+        if (!id) {
+          return json({ success: false, error: '缺少 submission id' }, { status: 400 });
+        }
+
+        await env.autism_comm_disorders_db
+          .prepare('UPDATE session6_submissions SET teacher_notes = ? WHERE id = ?')
+          .bind(teacher_notes || '', Number(id))
+          .run();
+
+        return json({ success: true, message: '課堂討論註記已成功儲存至 D1 資料庫！' });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 19-4. 清除 Session 6 歷史作答
+    if ((url.pathname === '/api/session6/clear' || (url.pathname === '/api/session6/submissions' && url.searchParams.get('action') === 'clear')) && (request.method === 'POST' || request.method === 'DELETE')) {
+      try {
+        await env.autism_comm_disorders_db
+          .prepare('DELETE FROM session6_submissions')
+          .run();
+
+        return json({ success: true, message: '已成功清除 D1 資料庫中第六節 (Session 3 & Session 4) 所有學生歷史作答紀錄！' });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
+    // 19-5. AI 助教審閱 Session 6 題目
+    if (url.pathname === '/api/ai/review-session6' && request.method === 'POST') {
+      try {
+        const body = await request.json() as any;
+        const {
+          student_name = '同學',
+          student_id = '',
+          group_name = '',
+          question_topic = '促進互動輪替與雙向溝通加入語言策略',
+          question_text = '',
+          answer_text = '',
+          max_score = 10
+        } = body;
+
+        if (!answer_text || !answer_text.trim()) {
+          return json({ success: false, error: '請先輸入您的作答內容再請求 AI 助教審閱！' }, { status: 400 });
+        }
+
+        const reviewPrompt = `學生姓名：${student_name} (學號: ${student_id}${group_name ? ', 組別: ' + group_name : ''})
+題目主題：${question_topic}
+題目內容：${question_text}
+本題滿分：${max_score} 分
+
+學生作答內容：
+"""
+${answer_text.trim()}
+"""
+
+任務：
+請扮演專業的語言病理學與自閉症早期介入臨床教學督導助教，針對 Hanen It Takes Two to Talk® Session 3 & Session 4 的學生作答進行多向度臨床專業評閱：
+
+【標準與解析參考】：
+- Session 3（輪流與互動）：
+  * 配合孩子三要素：回應長度(Length of turn)、節奏(Pace)、興趣(Interest)。
+  * 提示五大方法：面部表情與肢體語言、視覺輔助、暫停或改變熟悉常規、手把手協助(hand-over-hand)、提出問題。
+  * 避免 Conversation Stoppers（連環追問、測試壓力），改為將問句化為評論（Turn Questions into Comments）。
+  * Emily與爸爸下午茶：維持話題開口說話，Emily以點頭與"Yeah"回應。
+  * Alicia與媽媽：從連續測試性發問改為評論結合，互動變得流暢自然。
+  * Sean與媽媽肢體遊戲：刻意暫停等待，搭配豐富期待表情與手勢提示。
+  * SPARK模型：以相同方式開始(S)、規劃輪替機會(P)、調整活動(A)、重複字詞行為(R)、維持固定結尾(K)。
+- Session 4（順應孩子導引加入語言）：
+  * 四大策略：模仿(imitate)、解釋/口譯(interpret)、回應/評論(comment)、提問(ask a question)。
+  * 4S 原則：少說(Say less)、強調(Stress)、放慢(Go slow)、展示(Show)。
+  * Tristan與爸爸：蹲下平視、配合說話不搶玩具、正向回饋、語句擴充(Expand: shovel, ball, plane)。
+  * 4S 原則示範：精簡單詞降低負荷、聲學突顯聚焦核心、充分停頓拉長等待、動作展示視覺連結。
+
+請輸出：
+1. 【評定層次與建議得分】：明確標註落點【🌟 優等】、【⚡ 中等】或【⚠️ 待加強】，並給出客觀建議得分（0 ~ ${max_score} 分）。
+2. 【向度評析與對照】：指出學生作答之優點、臨床專業論述深度，以及具體待補足之處。
+3. 【臨床勉勵】：以溫暖、專業且具啟發性的口吻給予建議。`;
+
+        const reply = await callLLM(env, [
+          { role: 'system', content: '你是一位專業、溫暖且具啟發性的語言病理學臨床督導助教，使用繁體中文（台灣特教臨床習慣）回答。' },
+          { role: 'user', content: reviewPrompt }
+        ]);
+
+        return json({
+          success: true,
+          feedback: reply
+        });
+      } catch (err: any) {
+        console.error('Session 6 AI Review Error:', err);
+        return json({ success: false, error: err.message }, { status: 500 });
+      }
+    }
+
     // 靜態前端資源處理 (Cloudflare Assets)
     if (env.ASSETS) {
       return env.ASSETS.fetch(request);

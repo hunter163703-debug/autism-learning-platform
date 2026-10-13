@@ -3,7 +3,7 @@
 > 專案名稱：自閉症與溝通障礙 多元教學互動與核心概念檢測平台  
 > 製作者：亞洲大學 聽力暨語言治療學系 語言組 · 林樺鋒老師  
 > 正式線上網址：https://autism-learning-platform.2026ant.workers.dev  
-> 最新更新時間：2026-10-05 21:25
+> 最新更新時間：2026-10-13 21:55
 
 ---
 
@@ -15,10 +15,49 @@
 | **第二節** | 跟隨孩子的引導 (Follow Your Child's Lead) | ✅ 已上線 | Hanen 2-1 學習單、100分制自動評核、AI生活實例與思考題督導回饋、雙Sheet Excel匯出、一鍵重測 |
 | **第三節** | 跟隨孩子引導有四大核心策略 | ✅ 已上線 | Hanens3 影片學習單、100分制自動評核、6段內嵌示範影片串流、AI臨床督導審閱、雙Sheet Excel匯出 |
 | **第四節** | 【Session 2-3】跟隨孩子引導 (綜合實務篇) | ✅ 已上線 | 無提示純淨作答環境、三大核心影片題型、交卷標準解答對照核對、老師後台全班回答文字卡片牆與個人全文作答卷 |
+| **第五節** | 【Session 1】Let Your Child Lead (跟隨孩子的引導) | ✅ 已上線 | 溝通始於互動、四階段、OWL策略與跨階段應用（含Tristan與Basil）；純淨無提示作答、無內嵌影片回歸課堂現場討論、純學號姓名登記、教師儀表板全文作答檢視與Excel匯出 |
+| **第六節** | 【Session 3 & 4】雙向溝通與促進互動成長 | ✅ 已上線 | 輪流三要素與五提示、SPARK模型11題、4S原則與Tristan分析；純淨無提示作答、無內嵌影片回歸課堂現場討論、純學號姓名登記、教師儀表板與Excel匯出 |
 
 ---
 
-## 📝 2026-10-05 本日完成事項
+## 📝 2026-10-13 本日完成事項
+
+1. **研讀並精準解析《It Takes Two to Talk線上學習單-學生分組》全部 6 份檔案**：
+   - 深入比對 `Session 1 學習單(空白版與解答版).docx`，精準建構第五節（Let Your Child Lead）四大篇章、11 個核心題型與 100 分制評分模型。
+   - 深入比對 `session3題目與解答(1).docx` 及 `Session4學習單問題與解答.docx`，建構第六節雙單元合一（Part A: Session 3 促進互動成長 50分 + Part B: Session 4 雙向溝通家長漢能 50分，總分 100 分）。
+2. **依教學指引全面移除第五節與第六節內嵌影片（回歸課堂投影與現場討論）**：
+   - 為避免學生分心於個別播放，移除學習單頁面內所有 `<video>` 播放標籤與影片容器。
+   - 題幹統一改以課堂投影片編號與示範片段名稱標記（如：【課堂影片討論觀察】Slide 14 · itttr3-04），引導學生專注觀看教師於課堂投影放映之影片並進行小組討論。
+3. **全面落實作答欄位「無提示、無範例」純淨獨立作答環境**：
+   - 徹底清除第五節與第六節作答表單中所有 `input` 及 `textarea` 的 `placeholder`，全部設為空值。
+   - 移除題幹周邊之提示性文字（如「例如：...」、「例：...」等引導句型），確保學生完全獨立構思與作答。
+4. **完成第五節與第六節線上互動學習單網站建置**：
+   - `public/session5.html`（第五節）與 `public/session6.html`（第六節），並同步更新至 `docs/` 鏡像目錄。
+   - 支援「學生學號」與「學生姓名」純化登記，完全移除組別選項。
+   - 內建 AI 臨床督導助教即時審閱功能、即時字數檢查、草稿本機保存與自動還原。
+   - 老師檢視成績儀表板支援「全班最新成績總表」與「歷次作答軌跡」，支援「檢視作答」詳細全卷檢視。
+   - 內建 SheetJS 多頁籤 Excel 一鍵匯出及後台課堂討論註記即時存回 D1。
+5. **雲端 D1 資料庫擴充與本機/遠端同步遷移**：
+   - 建立 `migrations/0007_create_session5_submissions.sql` 與 `migrations/0008_create_session6_submissions.sql`。
+   - 於本機及遠端 Cloudflare D1（`autism-comm-disorders-db`）成功執行遷移。
+   - 後端 `src/index.ts` 擴充支援 `/api/session5/*` 與 `/api/session6/*` 之 submit、submissions、update-notes、clear 與 AI review API 端點。
+6. **全站六大單元導航同步與桌面捷徑建置**：
+   - 全面更新 `public/index.html`、`session2.html`、`session3.html`、`session4.html`、`session5.html`、`session6.html` 側邊欄。
+   - 於根目錄與 `public/` 產出第五節與第六節專屬 `.url` 網址快捷檔。
+   - 建立 Python 命令列 Excel 匯出工具 `scripts/export_session5_6_excel.py`。
+7. **Cloudflare Workers 正式更新部署與驗收通過**：
+   - 部署成功上線：`https://autism-learning-platform.2026ant.workers.dev`。
+   - 透過 HTTP 實測驗證，線上版本完全無 `<video>` 標籤，作答區 0 非空 placeholder，功能完整運作。
+8. **依 Session 1 簡報第 43 及 44 張擴充第五節最後兩個題目**：
+   - 參考 `Session 1 Slides\_Session 1 Slides.ppt` 第 43 張（`OWL with First Words Users - Tristan 與爸爸`）與第 44 張（`OWL with Combiners - Basil 與媽媽`）。
+   - 肆大題升級為跨階段 OWL 實務應用（Sasha 溝通者、Tristan 初用語詞者、Basil 語詞結合者與互動動作）。
+9. **第五節全面依最新解答版 Word 重配分數、移除組別並更正全站頁尾**：
+   - **重配分數**：對照 `Session 1 學習單(解答版).docx`，第五節精確重新配置為 100 分制（壹、溝通始於互動 20分 ＋ 貳、孩子如何及為什麼溝通 25分 ＋ 參、跟隨孩子引導與OWL 25分 ＋ 肆、跨階段OWL實務應用 30分）。
+   - **身分登記純化**：第五節與第六節身分登記全面移除「組別」選項與輸入框，回歸簡潔之學生學號與姓名登記。
+   - **頁尾名稱統一更正**：網頁最下方版權標記全面更正為「**亞洲大學 聽力暨語言治療學系 自閉症溝通障礙與溝通互動技巧學習平台**」。
+10. **修復教師後台「檢視作答」彈窗漏顯示最後兩題之缺陷**：
+    - 排查並修復 `openStudentDetailModal` 函數中的 HTML 渲染樣板，將 Slide 43（Tristan 與爸爸）與 Slide 44（Basil 與媽媽）之學生作答原始文字補齊渲染。
+    - 同步修正成果單與作答詳細卷中的各大題配分標示（壹 20分 / 貳 25分 / 參 25分 / 肆 30分），最新版本（Version ID: `8422bc41-48b1-499e-9cd1-a3a500b40050`）線上驗收通過。
 
 1. **全面落實無提示與純淨獨立作答環境**：
    - 清空所有 8 大題回應文字框內之 `placeholder` 與示範句型，不留任何劇透與預設文字。

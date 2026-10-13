@@ -1,0 +1,1839 @@
+# -*- coding: utf-8 -*-
+"""
+產生第五節 (Session 1) 線上互動學習單網站：public/session5.html
+單元主題：Let Your Child Lead (跟隨孩子的引導)
+純淨無提示作答版：移除內嵌影片與所有輸入框提示/placeholder，專注課堂影片討論
+"""
+
+html_content = '''<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>【第五節 課堂學習單】Session 1：Let Your Child Lead - 課堂線上互動學習單</title>
+  <!-- SheetJS for Excel Export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            autism: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              900: '#0c4a6e',
+            },
+            hanen: {
+              50: '#fff7ed',
+              100: '#ffedd5',
+              200: '#fed7aa',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c',
+              800: '#9a3412',
+              900: '#7c2d12',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap');
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .answer-textarea {
+      transition: all 0.2s ease-in-out;
+      border: 1.5px solid #cbd5e1;
+    }
+    .answer-textarea:focus {
+      outline: none;
+      border-color: #0284c7;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+      background-color: #f8fafc;
+    }
+    .blank-input {
+      border-bottom: 2px solid #0284c7;
+      background: transparent;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .blank-input:focus {
+      border-bottom-color: #f97316;
+      background-color: #f0f9ff;
+    }
+    @media print {
+      header, aside, .no-print, button, #toast, #scoreReportModalOverlay, #teacherDashboardModalOverlay, #aiReviewModal {
+        display: none !important;
+      }
+      body {
+        background: white !important;
+        color: black !important;
+      }
+      .print-shadow-none {
+        box-shadow: none !important;
+        border: 1px solid #cbd5e1 !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- 頂部導航列 -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <button id="sidebarToggle" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden">
+          <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-md">
+          <i class="fa-solid fa-users-rays text-lg"></i>
+        </div>
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-sky-700 bg-sky-50 px-2 py-0.5 rounded">It Takes Two to Talk® · Session 1</span>
+          <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">【第五節 課堂學習單】Let Your Child Lead（跟隨孩子的引導）</h1>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <!-- 老師檢視成績 按鈕 -->
+        <button id="teacherDashboardBtn" type="button" onclick="loadTeacherDashboard()" class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black text-white bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-800 shadow-md shadow-emerald-600/20 transition transform hover:-translate-y-0.5" title="檢視全班作答成果與歷程">
+          <i class="fa-solid fa-chalkboard-user text-sm"></i>
+          <span>老師檢視成績</span>
+        </button>
+
+        <!-- 學生身分與分組登記按鈕 -->
+        <button id="studentProfileBtn" type="button" onclick="openStudentModal()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 transition shadow-sm">
+          <i class="fa-solid fa-user-group"></i>
+          <span id="studentProfileText">登記學號與姓名</span>
+        </button>
+
+        <!-- 暫存學習單 -->
+        <button id="saveDraftBtn" type="button" onclick="saveDraft(true)" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-sky-700 bg-sky-50 border border-sky-200 hover:bg-sky-100 transition shadow-sm">
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span class="hidden sm:inline">暫存</span>
+        </button>
+
+        <!-- 列印 / 匯出 PDF -->
+        <button id="printBtn" type="button" onclick="window.print()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition shadow-sm">
+          <i class="fa-solid fa-print"></i>
+          <span class="hidden sm:inline">列印</span>
+        </button>
+
+        <!-- 重新開始測驗 -->
+        <button id="resetWorksheetHeaderBtn" type="button" onclick="confirmResetWorksheet()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition shadow-sm" title="清空當前作答並重新開始">
+          <i class="fa-solid fa-rotate-left"></i>
+          <span>重填</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主內容佈局 -->
+  <div class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex gap-6">
+
+    <!-- 左側章節選單 (Sidebar) -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 transform -translate-x-full lg:translate-x-0 lg:static lg:z-auto transition-transform duration-300 ease-in-out flex flex-col shadow-xl lg:shadow-none rounded-2xl lg:border lg:h-[calc(100vh-6.5rem)] lg:sticky lg:top-20 no-print">
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+        <h2 class="font-bold text-slate-800 flex items-center space-x-2 text-sm">
+          <i class="fa-solid fa-layer-group text-sky-600"></i>
+          <span>課程全單元選單</span>
+        </h2>
+        <button id="closeSidebar" class="p-1.5 text-slate-400 hover:text-slate-600 lg:hidden">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+        <!-- 第一節 -->
+        <a href="index.html" class="block p-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition group">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">第一節 · 核心測驗</span>
+            <i class="fa-solid fa-arrow-right text-xs text-slate-400 group-hover:translate-x-0.5 transition"></i>
+          </div>
+          <h4 class="font-bold text-xs text-slate-900 group-hover:text-sky-700 transition">自閉症兒童診斷與臨床表現</h4>
+          <p class="text-[11px] text-slate-500 mt-0.5">DSM-IV / DSM-5 鑑別檢測題庫與詳解</p>
+        </a>
+
+        <!-- 第二節 -->
+        <a href="session2.html" class="block p-3 rounded-xl border border-orange-200 bg-orange-50/40 hover:bg-orange-100/60 transition group">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded">第二節 · 實證方案</span>
+            <i class="fa-solid fa-arrow-right text-xs text-orange-400 group-hover:translate-x-0.5 transition"></i>
+          </div>
+          <h4 class="font-bold text-xs text-slate-900 group-hover:text-orange-700 transition">跟隨孩子的引導 (Follow Child's Lead)</h4>
+          <p class="text-[11px] text-slate-500 mt-0.5">OWL 技巧、風格與父母角色線上學習單</p>
+        </a>
+
+        <!-- 第三節 -->
+        <a href="session3.html" class="block p-3 rounded-xl border border-sky-200 bg-sky-50/40 hover:bg-sky-100/60 transition group">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded">第三節 (Session 2-2)</span>
+            <i class="fa-solid fa-arrow-right text-xs text-sky-400 group-hover:translate-x-0.5 transition"></i>
+          </div>
+          <h4 class="font-bold text-xs text-slate-900 group-hover:text-sky-700 transition">跟隨孩子引導四大核心策略</h4>
+          <p class="text-[11px] text-slate-500 mt-0.5">Hanens3 示範影片、參與＆遊戲、模仿、解讀、評論</p>
+        </a>
+
+        <!-- 第四節 -->
+        <a href="session4.html" class="block p-3 rounded-xl border border-amber-200 bg-amber-50/40 hover:bg-amber-100/60 transition group">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">第四節 (Session 2-3)</span>
+            <i class="fa-solid fa-arrow-right text-xs text-amber-400 group-hover:translate-x-0.5 transition"></i>
+          </div>
+          <h4 class="font-bold text-xs text-slate-900 group-hover:text-amber-700 transition">跟隨孩子引導 (綜合實務篇)</h4>
+          <p class="text-[11px] text-slate-500 mt-0.5">Jacob/Alicia/柏翔真實個案深入剖析</p>
+        </a>
+
+        <!-- 第五節：當前頁面 -->
+        <div class="p-3 rounded-xl bg-sky-500 text-white shadow-md relative">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-black uppercase tracking-wider bg-white/20 text-white px-2 py-0.5 rounded">
+              當前單元 · 第五節
+            </span>
+            <i class="fa-solid fa-circle-check text-xs text-sky-100"></i>
+          </div>
+          <h4 class="font-bold text-xs text-white">【Session 1】Let Your Child Lead</h4>
+          <p class="text-[11px] text-sky-100 mt-0.5">課堂學習單：互動概念、四階段與OWL跨階段應用</p>
+        </div>
+
+        <!-- 第六節 -->
+        <a href="session6.html" class="block p-3 rounded-xl border border-indigo-200 bg-indigo-50/40 hover:bg-indigo-100/60 transition group">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded">第六節 · 雙向溝通</span>
+            <i class="fa-solid fa-arrow-right text-xs text-indigo-400 group-hover:translate-x-0.5 transition"></i>
+          </div>
+          <h4 class="font-bold text-xs text-slate-900 group-hover:text-indigo-700 transition">【Session 3 & 4】促進互動與加入語言</h4>
+          <p class="text-[11px] text-slate-500 mt-0.5">輪流常規、SPARK模型、4S原則與Tristan分析</p>
+        </a>
+      </div>
+
+      <!-- 底部 D1 資料庫綁定提示 -->
+      <div class="p-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 rounded-b-2xl">
+        <div class="flex items-center space-x-2 text-slate-700 font-medium">
+          <i class="fa-solid fa-server text-sky-600"></i>
+          <span>D1 課程資料庫綁定</span>
+        </div>
+        <p class="mt-1 text-[11px] text-slate-500 truncate font-mono">autism-comm-disorders-db</p>
+        <p class="text-[10px] text-emerald-600 mt-0.5 font-medium flex items-center">
+          <i class="fa-solid fa-circle text-[6px] mr-1 text-emerald-500"></i>session5_submissions 雲端即時同步
+        </p>
+      </div>
+    </aside>
+
+    <!-- 右側學習單主體區 -->
+    <main class="flex-1 min-w-0 flex flex-col space-y-6">
+
+      <!-- 學生分組與身分登記橫幅 -->
+      <div id="studentBanner" class="p-4 rounded-2xl border transition-all duration-300 bg-sky-50/80 border-sky-200 text-sky-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+            <i class="fa-solid fa-people-group text-lg"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span id="studentBannerTitle" class="text-sm font-bold">尚未完整登記學生身分</span>
+              <span id="studentBannerStatusBadge" class="text-[11px] px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-300">尚未登記</span>
+            </div>
+            <p id="studentBannerDesc" class="text-xs text-sky-700 mt-0.5">本單元為課堂線上學習單，請先登記「學號」與「姓名」，專注於課堂影片討論並即時記錄作答成果。</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <button type="button" onclick="openStudentModal()" class="w-full sm:w-auto px-4 py-2 bg-sky-600 text-white hover:bg-sky-700 text-xs font-bold rounded-xl shadow-sm transition flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-user-pen"></i>
+            <span>登記 / 修改分組身分</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 單元頂部資訊卡 -->
+      <div class="bg-gradient-to-r from-sky-600 via-blue-700 to-indigo-800 rounded-2xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="relative z-10">
+          <div class="flex items-center space-x-2 text-sky-100 text-xs font-semibold mb-2">
+            <span class="bg-white/20 px-2.5 py-0.5 rounded-full backdrop-blur-sm">It Takes Two to Talk® 方案</span>
+            <span>·</span>
+            <span>第五節 學生分組學習單</span>
+            <span>·</span>
+            <span class="bg-emerald-400/20 text-emerald-200 px-2 py-0.5 rounded-full">滿分 100 分</span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black tracking-tight">【Session 1】Let Your Child Lead（跟隨孩子的引導）</h2>
+          <p class="text-sky-100 text-xs sm:text-sm mt-2 max-w-3xl leading-relaxed">
+            核心涵蓋：壹、溝通始於互動 (20分) ｜ 貳、孩子「如何」以及「為什麼」溝通 (25分) ｜ 參、跟隨孩子引導與 OWL 策略應用 (25分) ｜ 肆、辨識互動訊號與跨階段 OWL 實務應用 (30分)。請配合課堂中老師播放的教學影片與簡報內容，進行小組深入討論與獨立作答。
+          </p>
+
+          <div class="mt-5 pt-4 border-t border-white/20 flex flex-wrap items-center justify-between gap-4 text-xs text-sky-100">
+            <div class="flex items-center space-x-4">
+              <span><i class="fa-solid fa-chalkboard-user text-sky-300 mr-1.5"></i>模式：課堂現場放映與小組討論</span>
+              <span><i class="fa-solid fa-robot text-sky-300 mr-1.5"></i>AI 助教：臨床督導即時審閱</span>
+              <span><i class="fa-solid fa-users text-sky-300 mr-1.5"></i>獨立作答：支援自動暫存與雲端入庫</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="bg-white/10 px-3 py-1 rounded-lg text-white font-mono font-bold">
+                當前完成度：<span id="answeredProgressText">0 / 27 欄位</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 表單本體 -->
+      <form id="worksheetForm" onsubmit="event.preventDefault(); submitWorksheet();" class="space-y-6">
+
+        <!-- ========================================================= -->
+        <!-- 壹、溝通始於互動 (共 20 分) -->
+        <!-- ========================================================= -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+            <div class="flex items-center space-x-3">
+              <div class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-black text-sm">
+                壹
+              </div>
+              <div>
+                <h3 class="text-base sm:text-lg font-black text-slate-900">溝通始於互動</h3>
+                <p class="text-xs text-slate-500">互動核心觀念、Slide 7 親子互動觀察與基本需求</p>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-md border border-sky-200">
+              配分：30 分
+            </span>
+          </div>
+
+          <div class="space-y-6">
+            <!-- 第 1 題 -->
+            <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+              <div class="flex items-start justify-between">
+                <span class="text-xs font-black text-sky-700 bg-sky-100 px-2 py-0.5 rounded">1. 【核心觀念】(Slide 6) · 5分</span>
+                <span class="text-xs text-slate-400">填空題</span>
+              </div>
+              <p class="text-sm font-semibold text-slate-800 leading-relaxed">
+                溝通始於 
+                <input type="text" id="q1_1" class="blank-input font-bold text-sky-700 text-center w-32 px-1 mx-1" placeholder="" oninput="updateProgress()">
+                （Interaction），先有良好的互動，才能進一步發展出 
+                <input type="text" id="q1_2" class="blank-input font-bold text-sky-700 text-center w-32 px-1 mx-1" placeholder="" oninput="updateProgress()">
+                （Language）。
+              </p>
+            </div>
+
+            <!-- 第 2 題 -->
+            <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs font-black text-sky-700 bg-sky-100 px-2 py-0.5 rounded">2. 【影片觀察】(Slide 7) · 9分</span>
+                  <h4 class="text-sm font-bold text-slate-800 mt-2">觀察課堂投影投影片中的親子互動畫面，寫下你對這些親子互動過程的初次印象與觀察感受：</h4>
+                </div>
+                <span class="text-xs text-slate-400">簡答題</span>
+              </div>
+
+              <div>
+                <textarea id="q1_3" rows="4" class="answer-textarea w-full p-3 rounded-xl text-sm text-slate-800 custom-scrollbar" placeholder="" oninput="updateProgress()"></textarea>
+                <div class="flex items-center justify-end mt-2">
+                  <button type="button" onclick="requestAiReview('q1_3', 'Slide 7 親子互動初次印象與觀察感受', 10)" class="text-xs text-sky-600 hover:text-sky-800 font-bold inline-flex items-center space-x-1">
+                    <i class="fa-solid fa-wand-magic-sparkles text-sky-500"></i>
+                    <span>AI 助教審閱本題</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 第 3 題 -->
+            <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+              <div class="flex items-start justify-between">
+                <span class="text-xs font-black text-sky-700 bg-sky-100 px-2 py-0.5 rounded">3. 【兒童溝通的三大基本需求填空】(Slide 8) · 6分</span>
+                <span class="text-xs text-slate-400">填空題</span>
+              </div>
+              <p class="text-sm font-semibold text-slate-800">兒童要成功發起與維持溝通，需要具備哪三大要素（Children need…）？</p>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-slate-500 block mb-1">① 愉快的</span>
+                  <input type="text" id="q1_4_1" class="blank-input font-bold text-sky-700 w-full" placeholder="" oninput="updateProgress()">
+                  <span class="text-[10px] text-slate-400 block mt-1">（An enjoyable interaction）</span>
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-slate-500 block mb-1">② 溝通的</span>
+                  <input type="text" id="q1_4_2" class="blank-input font-bold text-sky-700 w-full" placeholder="" oninput="updateProgress()">
+                  <span class="text-[10px] text-slate-400 block mt-1">（A reason to communicate）</span>
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-slate-500 block mb-1">③ 溝通的</span>
+                  <input type="text" id="q1_4_3" class="blank-input font-bold text-sky-700 w-full" placeholder="" oninput="updateProgress()">
+                  <span class="text-[10px] text-slate-400 block mt-1">（A way to communicate）</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- 貳、孩子「如何」以及「為什麼」溝通 (共 25 分) -->
+        <!-- ========================================================= -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+            <div class="flex items-center space-x-3">
+              <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-sm">
+                貳
+              </div>
+              <div>
+                <h3 class="text-base sm:text-lg font-black text-slate-900">孩子「如何」以及「為什麼」溝通</h3>
+                <p class="text-xs text-slate-500">溝通發展四階段、小男孩自我表達、Tristan水龍頭創造溝通、Basil句型與理解</p>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-200">
+              配分：25 分
+            </span>
+          </div>
+
+          <div class="space-y-6">
+            <!-- 貳-1. 溝通四個階段 -->
+            <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+              <div class="flex items-start justify-between">
+                <span class="text-xs font-black text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded">1. 【核心觀念】(Slide 16) 溝通四個階段？ · 4分</span>
+                <span class="text-xs text-slate-400">填空題</span>
+              </div>
+              <p class="text-sm font-semibold text-slate-800">請依序寫出兒童溝通發展的四個階段（Stage 1 ~ Stage 4）：</p>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-indigo-700 block mb-1">第一階段</span>
+                  <input type="text" id="q2_1_1" class="blank-input font-bold text-slate-800 w-full" placeholder="" oninput="updateProgress()">
+                  <span class="text-[10px] text-slate-400 block mt-1">Discoverer</span>
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-indigo-700 block mb-1">第二階段</span>
+                  <input type="text" id="q2_1_2" class="blank-input font-bold text-slate-800 w-full" placeholder="" oninput="updateProgress()">
+                  <span class="text-[10px] text-slate-400 block mt-1">Communicator</span>
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-indigo-700 block mb-1">第三階段</span>
+                  <input type="text" id="q2_1_3" class="blank-input font-bold text-slate-800 w-full" placeholder="" oninput="updateProgress()">
+                  <span class="text-[10px] text-slate-400 block mt-1">First Words User</span>
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-indigo-700 block mb-1">第四階段</span>
+                  <input type="text" id="q2_1_4" class="blank-input font-bold text-slate-800 w-full" placeholder="" oninput="updateProgress()">
+                  <span class="text-[10px] text-slate-400 block mt-1">Combiner</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 貳-2. 小男孩如何用自己的方式表達 -->
+            <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs font-black text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded">2. 【影片觀察】(Slide 20) · 7分</span>
+                  <h4 class="text-sm font-bold text-slate-800 mt-2">小男孩如何用自己的方式表達？請具體舉例（杯子、牛、杯子與玩具，共三個答案）：</h4>
+                </div>
+                <span class="text-xs text-slate-400">簡答題</span>
+              </div>
+
+              <div class="space-y-3">
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-slate-700 block mb-1">① 關於「杯子」的表達方式：</span>
+                  <input type="text" id="q2_2_1" class="blank-input w-full text-sm font-medium" placeholder="" oninput="updateProgress()">
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-slate-700 block mb-1">② 關於「牛」的表達與分享：</span>
+                  <input type="text" id="q2_2_2" class="blank-input w-full text-sm font-medium" placeholder="" oninput="updateProgress()">
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-slate-700 block mb-1">③ 關於「牛與杯子（假扮遊戲/喝水）」：</span>
+                  <input type="text" id="q2_2_3" class="blank-input w-full text-sm font-medium" placeholder="" oninput="updateProgress()">
+                </div>
+              </div>
+              <div class="flex justify-end">
+                <button type="button" onclick="requestAiReview('q2_2_combined', '小男孩自我表達觀察三要點', 9)" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold inline-flex items-center space-x-1">
+                  <i class="fa-solid fa-wand-magic-sparkles text-indigo-500"></i>
+                  <span>AI 助教審閱本題三個例子</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 貳-3. Tristan 水龍頭與泡泡 -->
+            <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs font-black text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded">3. 【影片觀察】(Slide 22) · 7分</span>
+                  <h4 class="text-sm font-bold text-slate-800 mt-2">媽媽如何創造溝通機會，與 Tristan 建立溝通？</h4>
+                </div>
+                <span class="text-xs text-slate-400">簡答題</span>
+              </div>
+
+              <div>
+                <textarea id="q2_3" rows="4" class="answer-textarea w-full p-3 rounded-xl text-sm text-slate-800 custom-scrollbar" placeholder="" oninput="updateProgress()"></textarea>
+                <div class="flex items-center justify-end mt-2">
+                  <button type="button" onclick="requestAiReview('q2_3', 'Tristan 水龍頭泡泡創造溝通機會分析', 9)" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold inline-flex items-center space-x-1">
+                    <i class="fa-solid fa-wand-magic-sparkles text-indigo-500"></i>
+                    <span>AI 助教審閱本題</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 貳-4. Basil 溝通技能與句型 -->
+            <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs font-black text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded">4. 【影片觀察】(Slide 24) · 7分</span>
+                  <h4 class="text-sm font-bold text-slate-800 mt-2">Basil 可以理解並使用哪些溝通技能或句型？請舉出至少三個例子。</h4>
+                </div>
+                <span class="text-xs text-slate-400">簡答題</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-indigo-700 block mb-1">例子一：</span>
+                  <input type="text" id="q2_4_1" class="blank-input w-full text-sm font-medium" placeholder="" oninput="updateProgress()">
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-indigo-700 block mb-1">例子二：</span>
+                  <input type="text" id="q2_4_2" class="blank-input w-full text-sm font-medium" placeholder="" oninput="updateProgress()">
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-indigo-700 block mb-1">例子三：</span>
+                  <input type="text" id="q2_4_3" class="blank-input w-full text-sm font-medium" placeholder="" oninput="updateProgress()">
+                </div>
+              </div>
+              <div class="flex justify-end">
+                <button type="button" onclick="requestAiReview('q2_4_combined', 'Basil 溝通技能與句型三大例子', 9)" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold inline-flex items-center space-x-1">
+                  <i class="fa-solid fa-wand-magic-sparkles text-indigo-500"></i>
+                  <span>AI 助教審閱本題</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- 參、跟隨孩子引導與 OWL 策略應用 (共 25 分) -->
+        <!-- ========================================================= -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+            <div class="flex items-center space-x-3">
+              <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-sm">
+                參
+              </div>
+              <div>
+                <h3 class="text-base sm:text-lg font-black text-slate-900">跟隨孩子引導與 OWL 策略應用</h3>
+                <p class="text-xs text-slate-500">面對面姿勢、牛奶餅乾影片觀察、OWL三大關鍵要素</p>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+              配分：30 分
+            </span>
+          </div>
+
+          <div class="space-y-6">
+            <!-- 參-1. 面對面 -->
+            <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+              <div class="flex items-start justify-between">
+                <span class="text-xs font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">1. 【核心觀念】(Slide 27) · 4分</span>
+                <span class="text-xs text-slate-400">填空題</span>
+              </div>
+              <p class="text-sm font-semibold text-slate-800">
+                與人互動時應保持 
+                <input type="text" id="q3_1" class="blank-input font-bold text-emerald-700 text-center w-36 px-1 mx-1" placeholder="" oninput="updateProgress()">
+                的姿勢。
+              </p>
+            </div>
+
+            <!-- 參-2. 牛奶餅乾影片觀察 -->
+            <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">2. 【影片觀察】(Slide 31) · 9分</span>
+                  <h4 class="text-sm font-bold text-slate-800 mt-2">
+                    媽媽在影片開頭運用哪些方法來和孩子產生互動？在孩子表達他的意圖後，媽媽是否有立即理解？如何得知？
+                  </h4>
+                </div>
+                <span class="text-xs text-slate-400">簡答題</span>
+              </div>
+
+              <div>
+                <textarea id="q3_2" rows="4" class="answer-textarea w-full p-3 rounded-xl text-sm text-slate-800 custom-scrollbar" placeholder="" oninput="updateProgress()"></textarea>
+                <div class="flex items-center justify-end mt-2">
+                  <button type="button" onclick="requestAiReview('q3_2', '牛奶餅乾意圖理解與互動方式觀察', 7)" class="text-xs text-emerald-600 hover:text-emerald-800 font-bold inline-flex items-center space-x-1">
+                    <i class="fa-solid fa-wand-magic-sparkles text-emerald-500"></i>
+                    <span>AI 助教審閱本題</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 參-3. OWL 三大要素 -->
+            <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+              <div class="flex items-start justify-between">
+                <span class="text-xs font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">3. 【由孩子主導的三大關鍵要素 OWL 分別為何】(Slide 33) · 9分</span>
+                <span class="text-xs text-slate-400">填空題</span>
+              </div>
+              <p class="text-sm font-semibold text-slate-800">請填寫 OWL 三大字母代表的具體行動（英文或中文皆可）：</p>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-emerald-700 block mb-1">O (第一個字母)</span>
+                  <input type="text" id="q3_3_1" class="blank-input font-bold text-slate-800 w-full" placeholder="" oninput="updateProgress()">
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-emerald-700 block mb-1">W (第二個字母)</span>
+                  <input type="text" id="q3_3_2" class="blank-input font-bold text-slate-800 w-full" placeholder="" oninput="updateProgress()">
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-emerald-700 block mb-1">L (第三個字母)</span>
+                  <input type="text" id="q3_3_3" class="blank-input font-bold text-slate-800 w-full" placeholder="" oninput="updateProgress()">
+                </div>
+              </div>
+            </div>
+
+            <!-- 參-4. 誰主導 -->
+            <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+              <div class="flex items-start justify-between">
+                <span class="text-xs font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">4. 【核心觀念】(Slide 37) · 3分</span>
+                <span class="text-xs text-slate-400">填空題</span>
+              </div>
+              <p class="text-sm font-semibold text-slate-800">
+                由 
+                <input type="text" id="q3_4" class="blank-input font-bold text-emerald-700 text-center w-28 px-1 mx-1" placeholder="" oninput="updateProgress()">
+                主導，促進其所需語言能力的發展！
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- 肆、辨識互動訊號與跨階段 OWL 實務應用 (共 30 分) -->
+        <!-- ========================================================= -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+            <div class="flex items-center space-x-3">
+              <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-black text-sm">
+                肆
+              </div>
+              <div>
+                <h3 class="text-base sm:text-lg font-black text-slate-900">辨識互動訊號</h3>
+                <p class="text-xs text-slate-500">準備互動的肢體動作、Sasha(溝通者)、Tristan(初用語詞者)、Basil(語詞結合者)跨階段觀察</p>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+              配分：30 分
+            </span>
+          </div>
+
+          <div class="space-y-6">
+            <!-- 肆-1. 孩童準備好要互動的動作 -->
+            <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+              <div class="flex items-start justify-between">
+                <span class="text-xs font-black text-amber-800 bg-amber-100 px-2 py-0.5 rounded">1. 【核心觀念】OWL with Discoverers (Slide 41) · 6分</span>
+                <span class="text-xs text-slate-400">簡答題 (請列舉三項)</span>
+              </div>
+              <p class="text-sm font-semibold text-slate-800">
+                請問孩童哪些動作代表他們準備好要互動了呢（請寫出三項）？
+              </p>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-slate-600 block mb-1">第一項動作：</span>
+                  <input type="text" id="q4_1_1" class="blank-input w-full text-sm font-medium" placeholder="" oninput="updateProgress()">
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-slate-600 block mb-1">第二項動作：</span>
+                  <input type="text" id="q4_1_2" class="blank-input w-full text-sm font-medium" placeholder="" oninput="updateProgress()">
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-slate-600 block mb-1">第三項動作：</span>
+                  <input type="text" id="q4_1_3" class="blank-input w-full text-sm font-medium" placeholder="" oninput="updateProgress()">
+                </div>
+              </div>
+            </div>
+
+            <!-- 肆-2. Sasha 與媽媽互動 (Slide 42) -->
+            <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs font-black text-amber-800 bg-amber-100 px-2 py-0.5 rounded">2. 【課堂影片討論觀察】OWL with Communicators (Slide 42 · itttr1-07 · Sasha) · 8分</span>
+                  <h4 class="text-sm font-bold text-slate-800 mt-2">請配合課堂現場投影觀看 Sasha 與媽媽的互動影片（Parent Guidebook p. 21），回答下列問題：</h4>
+                </div>
+                <span class="text-xs text-slate-400">簡答題</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-slate-700 block mb-1">（1）媽媽如何運用 OWL 策略？（How does Mom OWL?）：</span>
+                  <input type="text" id="q4_2_1" class="blank-input w-full text-sm font-medium" placeholder="" oninput="updateProgress()">
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-slate-700 block mb-1">（2）對 Sasha 產生什麼影響／Sasha 如何與媽媽互動？（What is the impact on Sasha?）：</span>
+                  <input type="text" id="q4_2_2" class="blank-input w-full text-sm font-medium" placeholder="" oninput="updateProgress()">
+                </div>
+              </div>
+              <div class="flex justify-end">
+                <button type="button" onclick="requestAiReview('q4_2_combined', 'Slide 42 Sasha 與媽媽 OWL 互動模式分析', 5)" class="text-xs text-amber-700 hover:text-amber-900 font-bold inline-flex items-center space-x-1">
+                  <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i>
+                  <span>AI 助教審閱本題</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 肆-3. Tristan 與爸爸互動 (Slide 43 新增) -->
+            <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs font-black text-amber-800 bg-amber-100 px-2 py-0.5 rounded">3. 【課堂影片討論觀察】OWL with First Words Users (Slide 43 · itttr1-08r · Tristan) · 8分</span>
+                  <h4 class="text-sm font-bold text-slate-800 mt-2">請配合課堂現場投影觀看 Tristan 與爸爸的互動影片（Parent Guidebook p. 21），回答下列問題：</h4>
+                </div>
+                <span class="text-xs text-slate-400">簡答題</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-slate-700 block mb-1">（1）爸爸如何運用 OWL 策略？（How does Dad OWL?）：</span>
+                  <input type="text" id="q4_3_1" class="blank-input w-full text-sm font-medium" placeholder="" oninput="updateProgress()">
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-slate-700 block mb-1">（2）對 Tristan 產生什麼影響／Tristan 產生了哪些回應與互動？（What is the impact on Tristan?）：</span>
+                  <input type="text" id="q4_3_2" class="blank-input w-full text-sm font-medium" placeholder="" oninput="updateProgress()">
+                </div>
+              </div>
+              <div class="flex justify-end">
+                <button type="button" onclick="requestAiReview('q4_3_combined', 'Slide 43 Tristan 與爸爸 OWL 互動模式分析', 5)" class="text-xs text-amber-700 hover:text-amber-900 font-bold inline-flex items-center space-x-1">
+                  <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i>
+                  <span>AI 助教審閱本題</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 肆-4. Basil 與媽媽互動 (Slide 44 新增) -->
+            <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs font-black text-amber-800 bg-amber-100 px-2 py-0.5 rounded">4. 【課堂影片討論觀察】OWL with Combiners (Slide 44 · itttr1-09 · Basil) · 8分</span>
+                  <h4 class="text-sm font-bold text-slate-800 mt-2">請配合課堂現場投影觀看 Basil 與媽媽的互動影片（Parent Guidebook p. 21），回答下列問題：</h4>
+                </div>
+                <span class="text-xs text-slate-400">簡答題</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-slate-700 block mb-1">（1）媽媽如何運用 OWL 策略？（How does Mom OWL?）：</span>
+                  <input type="text" id="q4_4_1" class="blank-input w-full text-sm font-medium" placeholder="" oninput="updateProgress()">
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200">
+                  <span class="text-xs font-bold text-slate-700 block mb-1">（2）對 Basil 產生什麼影響／Basil 產生了哪些回應與互動？（What is the impact on Basil?）：</span>
+                  <input type="text" id="q4_4_2" class="blank-input w-full text-sm font-medium" placeholder="" oninput="updateProgress()">
+                </div>
+              </div>
+              <div class="flex justify-end">
+                <button type="button" onclick="requestAiReview('q4_4_combined', 'Slide 44 Basil 與媽媽 OWL 互動模式分析', 5)" class="text-xs text-amber-700 hover:text-amber-900 font-bold inline-flex items-center space-x-1">
+                  <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i>
+                  <span>AI 助教審閱本題</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 提交按鈕區域 -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="text-xs text-slate-500">
+            <span class="font-bold text-slate-700">提交說明：</span>
+            送出後將由系統比對標準答案與自動計算得分，同時儲存至 Cloudflare D1 資料庫供老師批閱與匯出。
+          </div>
+          <div class="flex items-center space-x-3 w-full sm:w-auto">
+            <button type="button" onclick="saveDraft(true)" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition">
+              <i class="fa-solid fa-floppy-disk mr-1.5"></i>暫存目前作答
+            </button>
+            <button type="submit" id="submitBtn" class="flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-black text-white bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 shadow-md shadow-sky-600/30 transition transform hover:-translate-y-0.5">
+              <i class="fa-solid fa-paper-plane mr-2"></i>提交學習單並計算成績
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- 頁腳 -->
+      <footer class="pt-8 pb-12 border-t border-slate-200 text-center text-xs text-slate-500 space-y-2 no-print">
+        <p class="font-bold text-slate-700">亞洲大學 聽力暨語言治療學系 自閉症溝通障礙與溝通互動技巧學習平台</p>
+        <p class="text-[11px] text-slate-400">本教學平台由 亞洲大學 聽力暨語言治療學系 語言組 林樺鋒老師 製作</p>
+        <p class="text-[10px] text-slate-400 font-mono">D1 Database: autism-comm-disorders-db | Table: session5_submissions</p>
+      </footer>
+    </main>
+  </div>
+
+  <!-- 學生與分組登記 Modal -->
+  <div id="studentModalOverlay" class="fixed inset-y-0 inset-x-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center">
+            <i class="fa-solid fa-id-card text-sm"></i>
+          </div>
+          <h3 class="text-base font-bold text-slate-900">登記學生身分</h3>
+        </div>
+        <button type="button" onclick="closeStudentModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <p class="text-xs text-slate-500">請輸入學生學號與姓名，送出學習單後成績將自動綁定並記錄至 Cloudflare D1 資料庫：</p>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">學生學號 <span class="text-rose-500">*</span>：</label>
+          <input type="text" id="modalStudentId" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none text-sm font-medium" placeholder="例如：112018001">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">學生姓名 <span class="text-rose-500">*</span>：</label>
+          <input type="text" id="modalStudentName" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none text-sm font-medium" placeholder="例如：王小明">
+        </div>
+      </div>
+
+      <div class="pt-3 flex items-center justify-end space-x-2">
+        <button type="button" onclick="closeStudentModal()" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100">
+          取消
+        </button>
+        <button type="button" onclick="saveModalStudentProfile()" class="px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 shadow-sm">
+          確認儲存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI 助教審閱建議 Modal -->
+  <div id="aiReviewModal" class="fixed inset-y-0 inset-x-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center">
+            <i class="fa-solid fa-robot text-sm"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">AI 臨床督導助教 · 即時審閱回饋</h3>
+            <p id="aiReviewTopicText" class="text-[11px] text-slate-500">審閱主題</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeAiModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div id="aiReviewContent" class="flex-1 overflow-y-auto custom-scrollbar my-4 text-xs sm:text-sm text-slate-700 whitespace-pre-wrap leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200">
+        正在連線臨床助教模型評析中，請稍候...
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-end">
+        <button type="button" onclick="closeAiModal()" class="px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-sky-600 hover:bg-sky-700">
+          關閉
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 成績報告 Modal -->
+  <div id="scoreReportModalOverlay" class="fixed inset-y-0 inset-x-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-5">
+      <div class="text-center space-y-2">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center text-2xl mx-auto shadow-lg">
+          <i class="fa-solid fa-award"></i>
+        </div>
+        <h3 class="text-xl font-black text-slate-900">學習單提交成功！</h3>
+        <p class="text-xs text-slate-500">已即時儲存至 Cloudflare D1 資料庫</p>
+      </div>
+
+      <div class="bg-sky-50 p-4 rounded-2xl border border-sky-200 text-center space-y-1">
+        <span class="text-xs font-bold text-sky-800">總成績評定</span>
+        <div class="text-4xl font-black text-sky-700 font-mono" id="scoreModalTotal">0 <span class="text-base font-normal">/ 100</span></div>
+        <p class="text-xs text-sky-600" id="scoreModalStudentInfo">學生：- (學號：-)</p>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <span class="text-slate-400 block text-[10px]">壹、溝通始於互動</span>
+          <span class="font-bold text-slate-800 text-sm" id="scoreModalPart1">0 / 20</span>
+        </div>
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <span class="text-slate-400 block text-[10px]">貳、如何與為什麼</span>
+          <span class="font-bold text-slate-800 text-sm" id="scoreModalPart2">0 / 25</span>
+        </div>
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <span class="text-slate-400 block text-[10px]">參、跟隨引導OWL</span>
+          <span class="font-bold text-slate-800 text-sm" id="scoreModalPart3">0 / 25</span>
+        </div>
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <span class="text-slate-400 block text-[10px]">肆、辨識互動訊號</span>
+          <span class="font-bold text-slate-800 text-sm" id="scoreModalPart4">0 / 30</span>
+        </div>
+      </div>
+
+      <div class="pt-3 flex items-center justify-center space-x-3">
+        <button type="button" onclick="closeScoreModal()" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 shadow-sm">
+          完成並查看作答內容
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 老師檢視成績儀表板 Modal -->
+  <div id="teacherDashboardModalOverlay" class="fixed inset-y-0 inset-x-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6 hidden">
+    <div class="bg-white rounded-2xl max-w-6xl w-full h-[90vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden">
+      <!-- 儀表板頂部 -->
+      <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm">
+            <i class="fa-solid fa-chalkboard-user text-lg"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h3 class="text-base sm:text-lg font-black text-slate-900">第五節 (Session 1) 學習單教師總覽後台</h3>
+              <span class="text-xs font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300">D1 即時同步</span>
+            </div>
+            <p class="text-xs text-slate-500">掌握全班個人與小組作答進度、成績分佈與課堂註記</p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <!-- 匯出 Excel -->
+          <button type="button" onclick="exportToExcel()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition">
+            <i class="fa-solid fa-file-excel"></i>
+            <span>匯出 Excel 報表</span>
+          </button>
+
+          <!-- 清空資料庫紀錄 -->
+          <button type="button" onclick="clearDatabaseRecords()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 shadow-sm transition">
+            <i class="fa-solid fa-trash-can"></i>
+            <span>清空作答</span>
+          </button>
+
+          <!-- 關閉 -->
+          <button type="button" onclick="closeTeacherDashboard()" class="p-2 text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark text-xl"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 統計指標條 -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-slate-100/60 border-b border-slate-200 text-xs">
+        <div class="bg-white p-3 rounded-xl border border-slate-200">
+          <span class="text-slate-400 block text-[11px]">總提交份數</span>
+          <span class="font-black text-slate-800 text-base" id="statTotalSubmissions">0</span>
+        </div>
+        <div class="bg-white p-3 rounded-xl border border-slate-200">
+          <span class="text-slate-400 block text-[11px]">不重複學生數</span>
+          <span class="font-black text-sky-700 text-base" id="statUniqueStudents">0</span>
+        </div>
+        <div class="bg-white p-3 rounded-xl border border-slate-200">
+          <span class="text-slate-400 block text-[11px]">全班平均分數</span>
+          <span class="font-black text-emerald-700 text-base" id="statAverageScore">0</span>
+        </div>
+        <div class="bg-white p-3 rounded-xl border border-slate-200">
+          <span class="text-slate-400 block text-[11px]">小組總組數</span>
+          <span class="font-black text-indigo-700 text-base" id="statTotalGroups">0</span>
+        </div>
+      </div>
+
+      <!-- 篩選與搜尋工具列 -->
+      <div class="p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex items-center space-x-2">
+          <button type="button" id="viewModeAllBtn" onclick="switchTeacherViewMode('all')" class="px-3 py-1.5 rounded-lg font-bold bg-sky-600 text-white">全班最新成績</button>
+          <button type="button" id="viewModeGroupBtn" onclick="switchTeacherViewMode('group')" class="px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">依小組分組檢視</button>
+          <button type="button" id="viewModeHistoryBtn" onclick="switchTeacherViewMode('history')" class="px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">歷次作答軌跡</button>
+        </div>
+
+        <div class="flex items-center space-x-2 w-full sm:w-auto">
+          <input type="text" id="teacherSearchInput" oninput="filterTeacherSubmissions()" placeholder="搜尋學號、姓名..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none w-full sm:w-60">
+        </div>
+      </div>
+
+      <!-- 列表主體區 -->
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-4">
+        <div id="teacherLoadingIndicator" class="text-center py-12 text-slate-400 text-xs">
+          <i class="fa-solid fa-spinner fa-spin text-2xl text-sky-600 mb-2 block"></i>
+          正在自 Cloudflare D1 載入全班作答紀錄...
+        </div>
+
+        <table id="teacherSubmissionsTable" class="w-full text-left text-xs border-collapse hidden">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
+              <th class="p-2.5">組別</th>
+              <th class="p-2.5">學號</th>
+              <th class="p-2.5">姓名</th>
+              <th class="p-2.5 text-center">總分</th>
+              <th class="p-2.5 text-center">壹(25)</th>
+              <th class="p-2.5 text-center">貳(35)</th>
+              <th class="p-2.5 text-center">參(20)</th>
+              <th class="p-2.5 text-center">肆(20)</th>
+              <th class="p-2.5">提交時間</th>
+              <th class="p-2.5 text-center">操作</th>
+            </tr>
+          </thead>
+          <tbody id="teacherSubmissionsTbody" class="divide-y divide-slate-100">
+            <!-- 動態生成 rows -->
+          </tbody>
+        </table>
+
+        <!-- 小組卡片視圖 (Group View) -->
+        <div id="teacherGroupContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 hidden">
+          <!-- 動態生成小組卡片 -->
+        </div>
+
+        <div id="teacherEmptyNotice" class="text-center py-16 text-slate-400 text-xs hidden">
+          <i class="fa-regular fa-folder-open text-3xl mb-2 block"></i>
+          目前尚無學生提交紀錄。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 學生作答詳情 Modal -->
+  <div id="studentDetailModalOverlay" class="fixed inset-y-0 inset-x-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-4xl w-full h-[85vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden">
+      <div class="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-black text-slate-900" id="detailModalTitle">學生作答明細</h3>
+          <p class="text-xs text-slate-500" id="detailModalSubtitle">學號：- ｜ 姓名：-</p>
+        </div>
+        <button type="button" onclick="closeStudentDetailModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4 text-xs leading-relaxed" id="detailModalContent">
+        <!-- 動態渲染詳細答案 -->
+      </div>
+
+      <div class="p-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="w-full sm:flex-1">
+          <input type="text" id="detailTeacherNoteInput" placeholder="輸入教師課堂評語或討論註記（即時儲存至 D1）..." class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none">
+        </div>
+        <div class="flex items-center space-x-2">
+          <button type="button" onclick="saveDetailTeacherNote()" class="px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-sky-600 hover:bg-sky-700">
+            儲存註記
+          </button>
+          <button type="button" onclick="closeStudentDetailModal()" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200">
+            關閉
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 提示 Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 px-4 py-3 rounded-xl shadow-lg text-xs font-bold flex items-center space-x-2 pointer-events-none">
+    <i id="toastIcon" class="fa-solid fa-circle-check"></i>
+    <span id="toastMsg">操作成功</span>
+  </div>
+
+  <!-- JavaScript 核心功能邏輯 -->
+  <script>
+    const API_BASE_URL = window.location.origin;
+
+    let currentStudentId = '';
+    let currentStudentName = '';
+    let currentGroupName = '';
+    let currentGroupMembers = '';
+    let teacherSubmissionsData = [];
+    let currentTeacherView = 'all'; // 'all', 'group', 'history'
+    let currentViewingSubmissionId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSavedProfile();
+      loadDraft();
+      initSidebar();
+      updateProgress();
+    });
+
+    function initSidebar() {
+      const toggle = document.getElementById('sidebarToggle');
+      const close = document.getElementById('closeSidebar');
+      const sidebar = document.getElementById('sidebar');
+      if (toggle && sidebar) {
+        toggle.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+      }
+      if (close && sidebar) {
+        close.addEventListener('click', () => sidebar.classList.add('-translate-x-full'));
+      }
+    }
+
+    // 學生身分與分組
+    function loadSavedProfile() {
+      currentStudentId = localStorage.getItem('hanen_s5_student_id') || localStorage.getItem('hanen_student_id') || '';
+      currentStudentName = localStorage.getItem('hanen_s5_student_name') || localStorage.getItem('hanen_student_name') || '';
+      currentGroupName = '';
+      currentGroupMembers = '';
+
+      if (document.getElementById('modalStudentId')) document.getElementById('modalStudentId').value = currentStudentId;
+      if (document.getElementById('modalStudentName')) document.getElementById('modalStudentName').value = currentStudentName;
+
+      updateStudentBadge();
+    }
+
+    function updateStudentBadge() {
+      const badge = document.getElementById('studentBannerStatusBadge');
+      const profileText = document.getElementById('studentProfileText');
+      const title = document.getElementById('studentBannerTitle');
+
+      if (currentStudentId && currentStudentName) {
+        badge.className = 'text-[11px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
+        badge.textContent = `${currentStudentName} (${currentStudentId})`;
+        profileText.textContent = `${currentStudentName}`;
+        title.textContent = `已登記：${currentStudentName} (${currentStudentId})`;
+      } else {
+        badge.className = 'text-[11px] px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-300';
+        badge.textContent = '尚未登記';
+        profileText.textContent = '登記學號與姓名';
+        title.textContent = '尚未登記學生學號與姓名';
+      }
+    }
+
+    function openStudentModal() {
+      if (document.getElementById('modalStudentId')) document.getElementById('modalStudentId').value = currentStudentId;
+      if (document.getElementById('modalStudentName')) document.getElementById('modalStudentName').value = currentStudentName;
+      document.getElementById('studentModalOverlay').classList.remove('hidden');
+    }
+
+    function closeStudentModal() {
+      document.getElementById('studentModalOverlay').classList.add('hidden');
+    }
+
+    function saveModalStudentProfile() {
+      const id = document.getElementById('modalStudentId').value.trim();
+      const name = document.getElementById('modalStudentName').value.trim();
+
+      if (!id || !name) {
+        showToast('請務必輸入學號與姓名！', 'warning');
+        return;
+      }
+
+      currentStudentId = id;
+      currentStudentName = name;
+      currentGroupName = '';
+      currentGroupMembers = '';
+
+      localStorage.setItem('hanen_s5_student_id', id);
+      localStorage.setItem('hanen_s5_student_name', name);
+      localStorage.setItem('hanen_student_id', id);
+      localStorage.setItem('hanen_student_name', name);
+
+      updateStudentBadge();
+      closeStudentModal();
+      showToast('學生身分已登記儲存！', 'success');
+    }
+
+    // 暫存與載入草稿
+    function getFormValues() {
+      return {
+        q1_1: document.getElementById('q1_1').value.trim(),
+        q1_2: document.getElementById('q1_2').value.trim(),
+        q1_3: document.getElementById('q1_3').value.trim(),
+        q1_4_1: document.getElementById('q1_4_1').value.trim(),
+        q1_4_2: document.getElementById('q1_4_2').value.trim(),
+        q1_4_3: document.getElementById('q1_4_3').value.trim(),
+
+        q2_1_1: document.getElementById('q2_1_1').value.trim(),
+        q2_1_2: document.getElementById('q2_1_2').value.trim(),
+        q2_1_3: document.getElementById('q2_1_3').value.trim(),
+        q2_1_4: document.getElementById('q2_1_4').value.trim(),
+        q2_2_1: document.getElementById('q2_2_1').value.trim(),
+        q2_2_2: document.getElementById('q2_2_2').value.trim(),
+        q2_2_3: document.getElementById('q2_2_3').value.trim(),
+        q2_3: document.getElementById('q2_3').value.trim(),
+        q2_4_1: document.getElementById('q2_4_1').value.trim(),
+        q2_4_2: document.getElementById('q2_4_2').value.trim(),
+        q2_4_3: document.getElementById('q2_4_3').value.trim(),
+
+        q3_1: document.getElementById('q3_1').value.trim(),
+        q3_2: document.getElementById('q3_2').value.trim(),
+        q3_3_1: document.getElementById('q3_3_1').value.trim(),
+        q3_3_2: document.getElementById('q3_3_2').value.trim(),
+        q3_3_3: document.getElementById('q3_3_3').value.trim(),
+        q3_4: document.getElementById('q3_4').value.trim(),
+
+        q4_1_1: document.getElementById('q4_1_1').value.trim(),
+        q4_1_2: document.getElementById('q4_1_2').value.trim(),
+        q4_1_3: document.getElementById('q4_1_3').value.trim(),
+        q4_2_1: document.getElementById('q4_2_1').value.trim(),
+        q4_2_2: document.getElementById('q4_2_2').value.trim(),
+        q4_3_1: document.getElementById('q4_3_1').value.trim(),
+        q4_3_2: document.getElementById('q4_3_2').value.trim(),
+        q4_4_1: document.getElementById('q4_4_1').value.trim(),
+        q4_4_2: document.getElementById('q4_4_2').value.trim()
+      };
+    }
+
+    function saveDraft(manual = false) {
+      const data = getFormValues();
+      localStorage.setItem('hanen_session5_draft', JSON.stringify(data));
+      if (manual) {
+        showToast('學習單草稿已成功暫存於本機！', 'success');
+      }
+    }
+
+    function loadDraft() {
+      const draft = localStorage.getItem('hanen_session5_draft');
+      if (!draft) return;
+      try {
+        const d = JSON.parse(draft);
+        for (const k in d) {
+          const el = document.getElementById(k);
+          if (el) el.value = d[k];
+        }
+      } catch (e) {}
+    }
+
+    function confirmResetWorksheet() {
+      if (confirm('確定要清空當前所有填寫內容並重新作答嗎？')) {
+        document.getElementById('worksheetForm').reset();
+        localStorage.removeItem('hanen_session5_draft');
+        updateProgress();
+        showToast('學習單已重置。', 'info');
+      }
+    }
+
+    function updateProgress() {
+      const data = getFormValues();
+      let filled = 0;
+      const keys = Object.keys(data);
+      keys.forEach(k => {
+        if (data[k]) filled++;
+      });
+      document.getElementById('answeredProgressText').textContent = `${filled} / ${keys.length} 欄位`;
+    }
+
+    // 自動計分邏輯 (滿分 100 分)
+    function calculateSession5Scores() {
+      const v = getFormValues();
+      let p1 = 0, p2 = 0, p3 = 0, p4 = 0;
+
+      // 壹、溝通始於互動 (共 20分)
+      // 1. 核心觀念 Slide 6 (5分: 2.5 + 2.5)
+      if (v.q1_1.includes('互動')) p1 += 2.5;
+      if (v.q1_2.includes('語言')) p1 += 2.5;
+
+      // 2. 影片觀察 Slide 7 (9分)
+      let q1_3_score = 0;
+      const q1_3_text = v.q1_3;
+      if (q1_3_text.length >= 8) q1_3_score += 3;
+      if (/球|相視|笑|驚嘆/.test(q1_3_text)) q1_3_score += 2;
+      if (/背靠背|笑嘻嘻/.test(q1_3_text)) q1_3_score += 2;
+      if (/膝蓋|飛高|開心/.test(q1_3_text)) q1_3_score += 2;
+      p1 += Math.min(9, Math.max(q1_3_score, q1_3_text.length >= 25 ? 7 : 0));
+
+      // 3. 三大基本需求 Slide 8 (6分: 各2分)
+      if (/互動|享受|愉快/.test(v.q1_4_1)) p1 += 2;
+      if (/理由|動機|原因/.test(v.q1_4_2)) p1 += 2;
+      if (/方式|方法|管道/.test(v.q1_4_3)) p1 += 2;
+
+      // 貳、孩子「如何」以及「為什麼」溝通 (共 25分)
+      // 1. 四階段 Slide 16 (4分: 各1分)
+      if (/探索/.test(v.q2_1_1)) p2 += 1;
+      if (/溝通/.test(v.q2_1_2)) p2 += 1;
+      if (/第一|字|詞/.test(v.q2_1_3)) p2 += 1;
+      if (/組合/.test(v.q2_1_4)) p2 += 1;
+
+      // 2. 小男孩表達 Slide 20 (7分: 2.5 + 2 + 2.5)
+      if (/指|杯|沒|飲料|裡面|方向/.test(v.q2_2_1)) p2 += 2.5;
+      if (/牛|分享|他人|給/.test(v.q2_2_2)) p2 += 2;
+      if (/喝水|聲音|動作|假裝|遊戲/.test(v.q2_2_3)) p2 += 2.5;
+
+      // 3. Tristan 水龍頭 Slide 22 (7分)
+      let q2_3_score = 0;
+      const q2_3_text = v.q2_3;
+      if (q2_3_text.length >= 8) q2_3_score += 2;
+      if (/水龍頭|on|按住|鬆開/.test(q2_3_text)) q2_3_score += 2;
+      if (/泡泡|bubble|命名|讀音/.test(q2_3_text)) q2_3_score += 1.5;
+      if (/洗碗精|等待|發現|擠出/.test(q2_3_text)) q2_3_score += 1.5;
+      p2 += Math.min(7, Math.max(q2_3_score, q2_3_text.length >= 25 ? 5 : 0));
+
+      // 4. Basil 句型與技能 Slide 24 (7分: 2.5 + 2.5 + 2)
+      if (/修補|輪替|介系詞|in|on|定冠詞|the|簡單句|被動|方位/.test(v.q2_4_1)) p2 += 2.5;
+      if (/修補|輪替|介系詞|in|on|定冠詞|the|簡單句|被動|方位/.test(v.q2_4_2)) p2 += 2.5;
+      if (/修補|輪替|介系詞|in|on|定冠詞|the|簡單句|被動|方位/.test(v.q2_4_3)) p2 += 2;
+
+      // 參、跟隨孩子引導與 OWL 策略應用 (共 25分)
+      // 1. 面對面 Slide 27 (4分)
+      if (/面對面|平視|看著臉/.test(v.q3_1)) p3 += 4;
+
+      // 2. 牛奶餅乾 Slide 31 (9分)
+      let q3_2_score = 0;
+      const q3_2_text = v.q3_2;
+      if (q3_2_text.length >= 8) q3_2_score += 2;
+      if (/刺激|牛奶|餅乾|重複|名稱|要不要/.test(q3_2_text)) q3_2_score += 2.5;
+      if (/否|沒有|未立即/.test(q3_2_text)) q3_2_score += 2;
+      if (/推走|拿起|搖頭|反覆|示範/.test(q3_2_text)) q3_2_score += 2.5;
+      p3 += Math.min(9, Math.max(q3_2_score, q3_2_text.length >= 25 ? 7 : 0));
+
+      // 3. OWL 三大要素 Slide 33 (9分: 各3分)
+      if (/observe|觀察|看/.test(v.q3_3_1.toLowerCase())) p3 += 3;
+      if (/wait|等待|等/.test(v.q3_3_2.toLowerCase())) p3 += 3;
+      if (/listen|聆聽|聽/.test(v.q3_3_3.toLowerCase())) p3 += 3;
+
+      // 4. 由孩子主導 Slide 37 (3分)
+      if (/孩子|童|個案/.test(v.q3_4)) p3 += 3;
+
+      // 肆、辨識互動訊號與跨階段 OWL 實務應用 (共 30分)
+      // 1. Discoverers 準備互動動作 Slide 41 (6分: 各2分)
+      let q4_1_count = 0;
+      const q4_1_items = [v.q4_1_1, v.q4_1_2, v.q4_1_3];
+      q4_1_items.forEach(it => {
+        if (/停止|看臉|注視|臉|眼睛|轉向|微笑|笑|聲音|發聲|移動|四肢/.test(it)) q4_1_count++;
+      });
+      p4 += Math.min(6, q4_1_count * 2);
+
+      // 2. Communicators Sasha Slide 42 (8分: 各4分)
+      if (/看|臉|發聲|堆|盒子|說話|聲音|四肢/.test(v.q4_2_1)) p4 += 4; else if (v.q4_2_1.length >= 4) p4 += 2.5;
+      if (/推倒|盒子|發聲|四肢|動|笑/.test(v.q4_2_2)) p4 += 4; else if (v.q4_2_2.length >= 4) p4 += 2.5;
+
+      // 3. First Words Users Tristan Slide 43 (8分: 各4分)
+      // (1) 爸爸如何運用 OWL (4分)
+      if (/觀察|表情|動作|手勢|等待|主導|聆聽|傾聽|回應|解讀|詢問/i.test(v.q4_3_1)) p4 += 4; else if (v.q4_3_1.length >= 6) p4 += 2.5;
+      // (2) 對 Tristan 的影響 (4分)
+      if (/信心|自信|語言|表達|更多|詞彙|想像|開口/i.test(v.q4_3_2)) p4 += 4; else if (v.q4_3_2.length >= 6) p4 += 2.5;
+
+      // 4. Combiners Basil Slide 44 (8分: 各4分)
+      // (1) 媽媽如何運用 OWL (4分)
+      if (/觀察|玩什麼|劇本|內容|等待|主導|傾聽|聆聽|解讀/i.test(v.q4_4_1)) p4 += 4; else if (v.q4_4_1.length >= 6) p4 += 2.5;
+      // (2) 對 Basil 的影響 (4分)
+      if (/參與|合作|指揮|回應|口語|澄清|豐富|對話|句/i.test(v.q4_4_2)) p4 += 4; else if (v.q4_4_2.length >= 6) p4 += 2.5;
+
+      p1 = Math.min(20, Math.round(p1 * 10) / 10);
+      p2 = Math.min(25, Math.round(p2 * 10) / 10);
+      p3 = Math.min(25, Math.round(p3 * 10) / 10);
+      p4 = Math.min(30, Math.round(p4 * 10) / 10);
+      const total = Math.min(100, Math.round(p1 + p2 + p3 + p4));
+      return { total, p1, p2, p3, p4 };
+    }
+
+    // 提交學習單
+    async function submitWorksheet() {
+      if (!currentStudentId || !currentStudentName) {
+        openStudentModal();
+        showToast('請先登記學號與姓名再提交！', 'warning');
+        return;
+      }
+
+      const scores = calculateSession5Scores();
+      const answers = getFormValues();
+      const btn = document.getElementById('submitBtn');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>提交中...';
+
+      try {
+        const payload = {
+          student_id: currentStudentId,
+          student_name: currentStudentName,
+          group_name: currentGroupName,
+          group_members: currentGroupMembers,
+          total_score: scores.total,
+          score_part1: scores.p1,
+          score_part2: scores.p2,
+          score_part3: scores.p3,
+          score_part4: scores.p4,
+          answers_json: answers,
+          ai_feedback: ''
+        };
+
+        const res = await fetch(`${API_BASE_URL}/api/session5/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || '提交失敗');
+
+        // 顯示成績彈窗
+        document.getElementById('scoreModalTotal').innerHTML = `${scores.total} <span class="text-base font-normal">/ 100</span>`;
+        document.getElementById('scoreModalStudentInfo').textContent = `${currentStudentName} (學號: ${currentStudentId})`;
+        document.getElementById('scoreModalPart1').textContent = `${scores.p1} / 20`;
+        document.getElementById('scoreModalPart2').textContent = `${scores.p2} / 25`;
+        document.getElementById('scoreModalPart3').textContent = `${scores.p3} / 25`;
+        document.getElementById('scoreModalPart4').textContent = `${scores.p4} / 30`;
+
+        document.getElementById('scoreReportModalOverlay').classList.remove('hidden');
+        showToast('學習單提交成功，已儲存至 D1 資料庫！', 'success');
+      } catch (err) {
+        alert(`提交失敗：${err.message}`);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    }
+
+    function closeScoreModal() {
+      document.getElementById('scoreReportModalOverlay').classList.add('hidden');
+    }
+
+    // AI 助教審閱
+    async function requestAiReview(fieldId, topicName, maxScore) {
+      let text = '';
+      if (fieldId === 'q2_2_combined') {
+        const v = getFormValues();
+        text = `1. 杯子：${v.q2_2_1}\n2. 牛牛分享：${v.q2_2_2}\n3. 牛喝水象徵遊戲：${v.q2_2_3}`;
+      } else if (fieldId === 'q2_4_combined') {
+        const v = getFormValues();
+        text = `1. 例子一：${v.q2_4_1}\n2. 例子二：${v.q2_4_2}\n3. 例子三：${v.q2_4_3}`;
+      } else if (fieldId === 'q4_2_combined') {
+        const v = getFormValues();
+        text = `1. 互動方式一：${v.q4_2_1}\n2. 互動方式二：${v.q4_2_2}`;
+      } else {
+        const el = document.getElementById(fieldId);
+        text = el ? el.value.trim() : '';
+      }
+
+      if (!text) {
+        showToast('請先在此題輸入您的作答內容再請求 AI 助教審閱！', 'warning');
+        return;
+      }
+
+      document.getElementById('aiReviewTopicText').textContent = topicName;
+      document.getElementById('aiReviewContent').textContent = '正在連線臨床督導助教模型審閱中，請稍候（約 2~3 秒）...';
+      document.getElementById('aiReviewModal').classList.remove('hidden');
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/ai/review-session5`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            student_name: currentStudentName || '同學',
+            student_id: currentStudentId,
+            group_name: currentGroupName,
+            question_topic: topicName,
+            question_text: topicName,
+            answer_text: text,
+            max_score: maxScore
+          })
+        });
+
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'AI 審閱失敗');
+
+        document.getElementById('aiReviewContent').textContent = data.feedback;
+      } catch (err) {
+        document.getElementById('aiReviewContent').textContent = `AI 助教審閱連線異常：${err.message}\n請確認網路連線或稍後再試。`;
+      }
+    }
+
+    function closeAiModal() {
+      document.getElementById('aiReviewModal').classList.add('hidden');
+    }
+
+    // 教師端儀表板
+    async function loadTeacherDashboard() {
+      document.getElementById('teacherDashboardModalOverlay').classList.remove('hidden');
+      document.getElementById('teacherLoadingIndicator').classList.remove('hidden');
+      document.getElementById('teacherSubmissionsTable').classList.add('hidden');
+      document.getElementById('teacherGroupContainer').classList.add('hidden');
+      document.getElementById('teacherEmptyNotice').classList.add('hidden');
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/session5/submissions`);
+        const json = await res.json();
+        if (!json.success) throw new Error(json.error || '讀取失敗');
+
+        teacherSubmissionsData = json.data || [];
+        updateTeacherStats();
+        renderTeacherView();
+      } catch (err) {
+        alert(`無法載入作答資料：${err.message}`);
+      } finally {
+        document.getElementById('teacherLoadingIndicator').classList.add('hidden');
+      }
+    }
+
+    function closeTeacherDashboard() {
+      document.getElementById('teacherDashboardModalOverlay').classList.add('hidden');
+    }
+
+    function updateTeacherStats() {
+      const total = teacherSubmissionsData.length;
+      document.getElementById('statTotalSubmissions').textContent = total;
+
+      const studentSet = new Set();
+      const groupSet = new Set();
+      let scoreSum = 0;
+
+      teacherSubmissionsData.forEach(r => {
+        studentSet.add(r.student_id);
+        if (r.group_name) groupSet.add(r.group_name);
+        scoreSum += Number(r.total_score) || 0;
+      });
+
+      document.getElementById('statUniqueStudents').textContent = studentSet.size;
+      document.getElementById('statTotalGroups').textContent = groupSet.size;
+      document.getElementById('statAverageScore').textContent = total > 0 ? (scoreSum / total).toFixed(1) : 0;
+    }
+
+    function switchTeacherViewMode(mode) {
+      currentTeacherView = mode;
+      document.getElementById('viewModeAllBtn').className = mode === 'all' ? 'px-3 py-1.5 rounded-lg font-bold bg-sky-600 text-white' : 'px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-700 hover:bg-slate-200';
+      document.getElementById('viewModeGroupBtn').className = mode === 'group' ? 'px-3 py-1.5 rounded-lg font-bold bg-sky-600 text-white' : 'px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-700 hover:bg-slate-200';
+      document.getElementById('viewModeHistoryBtn').className = mode === 'history' ? 'px-3 py-1.5 rounded-lg font-bold bg-sky-600 text-white' : 'px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-700 hover:bg-slate-200';
+      renderTeacherView();
+    }
+
+    function filterTeacherSubmissions() {
+      renderTeacherView();
+    }
+
+    function getFilteredData() {
+      const q = document.getElementById('teacherSearchInput').value.trim().toLowerCase();
+      let list = teacherSubmissionsData;
+
+      if (q) {
+        list = list.filter(r => 
+          (r.student_id && r.student_id.toLowerCase().includes(q)) ||
+          (r.student_name && r.student_name.toLowerCase().includes(q)) ||
+          (r.group_name && r.group_name.toLowerCase().includes(q))
+        );
+      }
+
+      if (currentTeacherView === 'all') {
+        const map = new Map();
+        list.forEach(r => {
+          if (!map.has(r.student_id)) {
+            map.set(r.student_id, r);
+          }
+        });
+        return Array.from(map.values());
+      }
+
+      return list;
+    }
+
+    function renderTeacherView() {
+      const list = getFilteredData();
+      const table = document.getElementById('teacherSubmissionsTable');
+      const groupContainer = document.getElementById('teacherGroupContainer');
+      const empty = document.getElementById('teacherEmptyNotice');
+
+      if (!list || list.length === 0) {
+        table.classList.add('hidden');
+        groupContainer.classList.add('hidden');
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      empty.classList.add('hidden');
+
+      if (currentTeacherView === 'group') {
+        table.classList.add('hidden');
+        groupContainer.classList.remove('hidden');
+        renderGroupCards(list);
+      } else {
+        groupContainer.classList.add('hidden');
+        table.classList.remove('hidden');
+        renderTableRows(list);
+      }
+    }
+
+    function renderTableRows(list) {
+      const tbody = document.getElementById('teacherSubmissionsTbody');
+      tbody.innerHTML = list.map(r => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-2.5 font-bold text-sky-700">${escapeHtml(r.group_name || '個人')}</td>
+          <td class="p-2.5 font-mono text-slate-600">${escapeHtml(r.student_id)}</td>
+          <td class="p-2.5 font-bold text-slate-900">${escapeHtml(r.student_name)}</td>
+          <td class="p-2.5 text-center font-black text-sky-600">${r.total_score}</td>
+          <td class="p-2.5 text-center text-slate-600">${r.score_part1}</td>
+          <td class="p-2.5 text-center text-slate-600">${r.score_part2}</td>
+          <td class="p-2.5 text-center text-slate-600">${r.score_part3}</td>
+          <td class="p-2.5 text-center text-slate-600">${r.score_part4}</td>
+          <td class="p-2.5 text-slate-400 font-mono text-[11px]">${r.submitted_at || ''}</td>
+          <td class="p-2.5 text-center">
+            <button type="button" onclick="openStudentDetailModal(${r.id})" class="px-2.5 py-1 rounded-lg text-xs font-bold text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-200">
+              檢視作答
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderGroupCards(list) {
+      const container = document.getElementById('teacherGroupContainer');
+      const groupMap = new Map();
+
+      list.forEach(r => {
+        const g = r.group_name || '未分組';
+        if (!groupMap.has(g)) groupMap.set(g, []);
+        groupMap.get(g).push(r);
+      });
+
+      let html = '';
+      groupMap.forEach((members, gName) => {
+        const avg = (members.reduce((s, m) => s + Number(m.total_score || 0), 0) / members.length).toFixed(1);
+        html += `
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+              <span class="font-black text-sm text-sky-800"><i class="fa-solid fa-users text-sky-600 mr-1.5"></i>${escapeHtml(gName)}</span>
+              <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">平均分：${avg}</span>
+            </div>
+            <div class="space-y-1.5">
+              ${members.map(m => `
+                <div class="flex items-center justify-between text-xs p-1.5 rounded bg-slate-50">
+                  <span class="font-medium text-slate-800">${escapeHtml(m.student_name)} (${escapeHtml(m.student_id)})</span>
+                  <div class="flex items-center space-x-2">
+                    <span class="font-black text-sky-600">${m.total_score}分</span>
+                    <button type="button" onclick="openStudentDetailModal(${m.id})" class="text-[11px] text-sky-600 hover:underline">詳情</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    // 檢視作答細節
+    function openStudentDetailModal(id) {
+      const record = teacherSubmissionsData.find(r => r.id === id);
+      if (!record) return;
+
+      currentViewingSubmissionId = id;
+      document.getElementById('detailModalTitle').textContent = `作答詳細卷 · ${record.student_name} (${record.student_id})`;
+      document.getElementById('detailModalSubtitle').textContent = `學號：${record.student_id} ｜ 成績：${record.total_score} 分 (壹:${record.score_part1}/20 貳:${record.score_part2}/25 參:${record.score_part3}/25 肆:${record.score_part4}/30) ｜ 時間：${record.submitted_at}`;
+      document.getElementById('detailTeacherNoteInput').value = record.teacher_notes || '';
+
+      const a = record.answers || {};
+      let html = `
+        <div class="space-y-4">
+          <!-- 壹、溝通始於互動 -->
+          <div class="p-3 bg-sky-50 rounded-xl border border-sky-200">
+            <h4 class="font-bold text-sky-800 mb-1">【壹、溝通始於互動 (得分: ${record.score_part1} / 20)】</h4>
+            <p><strong>1. 核心填空 (Slide 6 · 5分)：</strong> 溝通始於【${escapeHtml(a.q1_1 || '(未作答)')}】，發展出【${escapeHtml(a.q1_2 || '(未作答)')}】。</p>
+            <p class="mt-2"><strong>2. 影片觀察初次印象 (Slide 7 · 9分)：</strong></p>
+            <div class="p-2 bg-white rounded border border-slate-200 whitespace-pre-wrap text-xs text-slate-800">${escapeHtml(a.q1_3 || '(未作答)')}</div>
+            <p class="mt-2"><strong>3. 溝通三大需求 (Slide 8 · 6分)：</strong> ① 愉快的【${escapeHtml(a.q1_4_1 || '(未作答)')}】 ｜ ② 溝通的【${escapeHtml(a.q1_4_2 || '(未作答)')}】 ｜ ③ 溝通的【${escapeHtml(a.q1_4_3 || '(未作答)')}】</p>
+          </div>
+
+          <!-- 貳、孩子如何以及為什麼溝通 -->
+          <div class="p-3 bg-indigo-50 rounded-xl border border-indigo-200">
+            <h4 class="font-bold text-indigo-800 mb-1">【貳、孩子「如何」以及「為什麼」溝通 (得分: ${record.score_part2} / 25)】</h4>
+            <p><strong>1. 溝通四階段 (Slide 16 · 4分)：</strong> ① ${escapeHtml(a.q2_1_1 || '(未作答)')} ｜ ② ${escapeHtml(a.q2_1_2 || '(未作答)')} ｜ ③ ${escapeHtml(a.q2_1_3 || '(未作答)')} ｜ ④ ${escapeHtml(a.q2_1_4 || '(未作答)')}</p>
+            <p class="mt-2"><strong>2. 小男孩表達三要點 (Slide 20 · 7分)：</strong></p>
+            <ul class="list-disc pl-5 space-y-0.5 text-xs text-slate-800">
+              <li>杯子：${escapeHtml(a.q2_2_1 || '(未作答)')}</li>
+              <li>牛牛分享：${escapeHtml(a.q2_2_2 || '(未作答)')}</li>
+              <li>牛喝水假裝遊戲：${escapeHtml(a.q2_2_3 || '(未作答)')}</li>
+            </ul>
+            <p class="mt-2"><strong>3. Tristan水龍頭創造溝通 (Slide 22 · 7分)：</strong></p>
+            <div class="p-2 bg-white rounded border border-slate-200 whitespace-pre-wrap text-xs text-slate-800">${escapeHtml(a.q2_3 || '(未作答)')}</div>
+            <p class="mt-2"><strong>4. Basil 溝通技能舉例 (Slide 24 · 7分)：</strong> ① ${escapeHtml(a.q2_4_1 || '(未作答)')} ｜ ② ${escapeHtml(a.q2_4_2 || '(未作答)')} ｜ ③ ${escapeHtml(a.q2_4_3 || '(未作答)')}</p>
+          </div>
+
+          <!-- 參、跟隨孩子引導與 OWL -->
+          <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+            <h4 class="font-bold text-emerald-800 mb-1">【參、跟隨孩子引導與 OWL 策略應用 (得分: ${record.score_part3} / 25)】</h4>
+            <p><strong>1. 互動姿勢 (Slide 27 · 4分)：</strong> 保持【${escapeHtml(a.q3_1 || '(未作答)')}】姿勢。</p>
+            <p class="mt-2"><strong>2. 牛奶餅乾影片觀察 (Slide 31 · 9分)：</strong></p>
+            <div class="p-2 bg-white rounded border border-slate-200 whitespace-pre-wrap text-xs text-slate-800">${escapeHtml(a.q3_2 || '(未作答)')}</div>
+            <p class="mt-2"><strong>3. OWL 三大要素 (Slide 33 · 9分)：</strong> O: ${escapeHtml(a.q3_3_1 || '(未作答)')} ｜ W: ${escapeHtml(a.q3_3_2 || '(未作答)')} ｜ L: ${escapeHtml(a.q3_3_3 || '(未作答)')}</p>
+            <p class="mt-2"><strong>4. 誰主導 (Slide 37 · 3分)：</strong> 由【${escapeHtml(a.q3_4 || '(未作答)')}】主導。</p>
+          </div>
+
+          <!-- 肆、辨識互動訊號與跨階段 OWL 實務應用 -->
+          <div class="p-3 bg-amber-50 rounded-xl border border-amber-200">
+            <h4 class="font-bold text-amber-800 mb-1">【肆、辨識互動訊號與跨階段 OWL 實務應用 (得分: ${record.score_part4} / 30)】</h4>
+            <p><strong>1. Discoverers 準備互動動作 (Slide 41 · 6分)：</strong></p>
+            <p class="text-xs text-slate-800">① ${escapeHtml(a.q4_1_1 || '(未作答)')} ｜ ② ${escapeHtml(a.q4_1_2 || '(未作答)')} ｜ ③ ${escapeHtml(a.q4_1_3 || '(未作答)')}</p>
+            
+            <p class="mt-2"><strong>2. Communicators Sasha (Slide 42 · 8分)：</strong></p>
+            <ul class="list-disc pl-5 space-y-0.5 text-xs text-slate-800">
+              <li>(1) 媽媽如何運用 OWL：${escapeHtml(a.q4_2_1 || '(未作答)')}</li>
+              <li>(2) 對 Sasha 的影響／互動方式：${escapeHtml(a.q4_2_2 || '(未作答)')}</li>
+            </ul>
+
+            <p class="mt-2"><strong>3. First Words Users Tristan (Slide 43 · 8分)：</strong></p>
+            <ul class="list-disc pl-5 space-y-0.5 text-xs text-slate-800">
+              <li>(1) 爸爸如何運用 OWL 策略：${escapeHtml(a.q4_3_1 || '(未作答)')}</li>
+              <li>(2) 對 Tristan 產生什麼影響／回應與互動：${escapeHtml(a.q4_3_2 || '(未作答)')}</li>
+            </ul>
+
+            <p class="mt-2"><strong>4. Combiners Basil (Slide 44 · 8分)：</strong></p>
+            <ul class="list-disc pl-5 space-y-0.5 text-xs text-slate-800">
+              <li>(1) 媽媽如何運用 OWL 策略：${escapeHtml(a.q4_4_1 || '(未作答)')}</li>
+              <li>(2) 對 Basil 產生什麼影響／回應與互動：${escapeHtml(a.q4_4_2 || '(未作答)')}</li>
+            </ul>
+          </div>
+        </div>
+      `;
+      document.getElementById('detailModalContent').innerHTML = html;
+      document.getElementById('studentDetailModalOverlay').classList.remove('hidden');
+    }
+
+    function closeStudentDetailModal() {
+      document.getElementById('studentDetailModalOverlay').classList.add('hidden');
+    }
+
+    async function saveDetailTeacherNote() {
+      if (!currentViewingSubmissionId) return;
+      const note = document.getElementById('detailTeacherNoteInput').value.trim();
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/session5/update-notes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: currentViewingSubmissionId, teacher_notes: note })
+        });
+        const json = await res.json();
+        if (!json.success) throw new Error(json.error || '儲存失敗');
+
+        const rec = teacherSubmissionsData.find(r => r.id === currentViewingSubmissionId);
+        if (rec) rec.teacher_notes = note;
+
+        showToast('課堂討論註記已儲存至 D1 資料庫！', 'success');
+      } catch (err) {
+        alert(`儲存失敗：${err.message}`);
+      }
+    }
+
+    // 匯出 Excel
+    function exportToExcel() {
+      if (!teacherSubmissionsData || teacherSubmissionsData.length === 0) {
+        showToast('目前尚無資料可匯出！', 'warning');
+        return;
+      }
+
+      const studentMap = new Map();
+      teacherSubmissionsData.forEach(r => {
+        if (!studentMap.has(r.student_id)) {
+          studentMap.set(r.student_id, { ...r, count: 1 });
+        } else {
+          studentMap.get(r.student_id).count += 1;
+        }
+      });
+
+      const sheet1Data = Array.from(studentMap.values()).map((r, idx) => ({
+        '項次': idx + 1,
+        '小組': r.group_name || '個人',
+        '同組成員': r.group_members || '',
+        '學號': r.student_id,
+        '姓名': r.student_name,
+        '總成績': r.total_score,
+        '壹、溝通始於互動(25分)': r.score_part1,
+        '貳、如何與為什麼(35分)': r.score_part2,
+        '參、跟隨引導OWL(20分)': r.score_part3,
+        '肆、辨識互動訊號與跨階段 OWL 實務應用 (30分)': r.score_part4,
+        '教師課堂註記': r.teacher_notes || '',
+        '累計作答次數': r.count,
+        '最後提交時間': r.submitted_at || ''
+      }));
+
+      const sheet2Data = teacherSubmissionsData.map((r, idx) => {
+        const a = r.answers || {};
+        return {
+          '紀錄ID': r.id,
+          '小組': r.group_name || '個人',
+          '學號': r.student_id,
+          '姓名': r.student_name,
+          '總成績': r.total_score,
+          '互動核心填空': `${a.q1_1 || ''} / ${a.q1_2 || ''}`,
+          'Slide7觀察': a.q1_3 || '',
+          '三大需求': `${a.q1_4_1 || ''} / ${a.q1_4_2 || ''} / ${a.q1_4_3 || ''}`,
+          '四階段': `${a.q2_1_1 || ''} / ${a.q2_1_2 || ''} / ${a.q2_1_3 || ''} / ${a.q2_1_4 || ''}`,
+          '小男孩杯子': a.q2_2_1 || '',
+          '小男孩牛牛': a.q2_2_2 || '',
+          '小男孩喝水遊戲': a.q2_2_3 || '',
+          'Tristan水龍頭': a.q2_3 || '',
+          'Basil例子': `${a.q2_4_1 || ''} / ${a.q2_4_2 || ''} / ${a.q2_4_3 || ''}`,
+          '面對面': a.q3_1 || '',
+          '牛奶餅乾': a.q3_2 || '',
+          'OWL要素': `${a.q3_3_1 || ''} / ${a.q3_3_2 || ''} / ${a.q3_3_3 || ''}`,
+          '主導人': a.q3_4 || '',
+          '準備互動訊號': `${a.q4_1_1 || ''} / ${a.q4_1_2 || ''} / ${a.q4_1_3 || ''}`,
+          'Sasha (Slide 42)': `OWL: ${a.q4_2_1 || ''} / 影響: ${a.q4_2_2 || ''}`,
+          'Tristan (Slide 43)': `OWL: ${a.q4_3_1 || ''} / 影響: ${a.q4_3_2 || ''}`,
+          'Basil (Slide 44)': `OWL: ${a.q4_4_1 || ''} / 影響: ${a.q4_4_2 || ''}`,
+          '提交時間': r.submitted_at || ''
+        };
+      });
+
+      const wb = XLSX.utils.book_new();
+      const ws1 = XLSX.utils.json_to_sheet(sheet1Data);
+      const ws2 = XLSX.utils.json_to_sheet(sheet2Data);
+
+      XLSX.utils.book_append_sheet(wb, ws1, '最新成績總表');
+      XLSX.utils.book_append_sheet(wb, ws2, '歷次作答詳細清單');
+
+      XLSX.writeFile(wb, `第五節_Session1_學生學習單成績總表_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      showToast('Excel 報表匯出成功！', 'success');
+    }
+
+    // 清空歷史紀錄
+    async function clearDatabaseRecords() {
+      const promptVal = prompt('【危險操作】請輸入 "CLEAR" 以確認清空第五節 (Session 1) 的所有學生作答紀錄：');
+      if (promptVal !== 'CLEAR') {
+        showToast('取消清空操作。', 'info');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/session5/clear`, {
+          method: 'POST'
+        });
+        const json = await res.json();
+        if (!json.success) throw new Error(json.error || '清除失敗');
+
+        teacherSubmissionsData = [];
+        updateTeacherStats();
+        renderTeacherView();
+        showToast('已成功清空第五節所有歷史紀錄！', 'success');
+      } catch (err) {
+        alert(`清空失敗：${err.message}`);
+      }
+    }
+
+    function showToast(msg, type = 'info') {
+      const toast = document.getElementById('toast');
+      const icon = document.getElementById('toastIcon');
+      const text = document.getElementById('toastMsg');
+
+      text.textContent = msg;
+      if (type === 'success') {
+        toast.className = 'fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 px-4 py-3 rounded-xl shadow-lg text-xs font-bold flex items-center space-x-2 bg-emerald-600 text-white';
+        icon.className = 'fa-solid fa-circle-check';
+      } else if (type === 'warning') {
+        toast.className = 'fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 px-4 py-3 rounded-xl shadow-lg text-xs font-bold flex items-center space-x-2 bg-amber-500 text-white';
+        icon.className = 'fa-solid fa-triangle-exclamation';
+      } else {
+        toast.className = 'fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 px-4 py-3 rounded-xl shadow-lg text-xs font-bold flex items-center space-x-2 bg-slate-800 text-white';
+        icon.className = 'fa-solid fa-info-circle';
+      }
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3000);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
+'''
+
+with open(r'D:\2026ant線上教學網站\public\session5.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print('Updated session5.html (Clean, no video, no placeholder)')
